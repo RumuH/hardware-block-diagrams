@@ -1,0 +1,38 @@
+name: 画风反馈与参考样本
+description: 反馈构图、颜色、箭头和层级，或提交参考图。
+title: '[画风] '
+body:
+- type: markdown
+  attributes:
+    value: 感谢反馈！请提供可公开的最小示例；本仓库及 issue 附件公开可见。不要上传未公开的芯片设计、密钥或完整私人风格库。
+- type: textarea
+  id: context
+  attributes:
+    label: 当前图与风格
+    description: 填写使用的风格名称/版本；说明是修改现有结果还是提供新参考。
+  validations:
+    required: true
+- type: textarea
+  id: changes
+  attributes:
+    label: 希望改进的画法
+    description: 具体指出分区、对齐、共享资源条、箭头、反馈路径、文字或颜色的变化。将硬件结构变更另行说明。
+  validations:
+    required: true
+- type: textarea
+  id: samples
+  attributes:
+    label: 对比图及来源
+    description: 附修改前后图或参考图，并注明原创/公开来源。模糊图片可补充文字说明。
+  validations:
+    required: false
+- type: dropdown
+  id: permission
+  attributes:
+    label: 样本使用意图
+    description: 反馈不会自动成为所有用户的默认风格；维护者仍需审阅。
+    options:
+    - 仅讨论本次问题，不学习入库
+    - 允许提炼通用画法并保存为具名风格；不表示允许再分发原图
+  validations:
+    required: true

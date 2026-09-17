@@ -1,0 +1,28 @@
+name: 功能或使用建议
+description: 提出新能力、交互改进或文档建议。
+title: '[建议] '
+body:
+- type: markdown
+  attributes:
+    value: 感谢反馈！请提供可公开的最小示例；本仓库及 issue 附件公开可见。不要上传未公开的芯片设计、密钥或完整私人风格库。
+- type: textarea
+  id: problem
+  attributes:
+    label: 使用场景与困难
+    description: 你在画哪类硬件图？当前哪里不方便？
+  validations:
+    required: true
+- type: textarea
+  id: proposal
+  attributes:
+    label: 希望支持的行为
+    description: 描述期望的输入、输出，以及怎样算满足需求。
+  validations:
+    required: true
+- type: textarea
+  id: examples
+  attributes:
+    label: 示例或替代办法
+    description: 可提供公开图片、来源链接或目前的解决方式。
+  validations:
+    required: false

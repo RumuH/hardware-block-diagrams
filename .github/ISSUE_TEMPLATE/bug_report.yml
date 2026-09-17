@@ -1,0 +1,44 @@
+name: 绘图或运行问题
+description: 报告结构不正确、文字遮挡、连线错误、导出失败或风格库问题。
+title: '[问题] '
+body:
+- type: markdown
+  attributes:
+    value: 感谢反馈！请提供可公开的最小示例；本仓库及 issue 附件公开可见。不要上传未公开的芯片设计、密钥或完整私人风格库。
+- type: textarea
+  id: behavior
+  attributes:
+    label: 实际结果与期望结果
+    description: 说明哪里不正确，以及你希望怎样显示或运行。
+  validations:
+    required: true
+- type: textarea
+  id: reproduce
+  attributes:
+    label: 复现输入与步骤
+    description: 贴出最小硬件描述/提示词、所用风格名称，以及调用命令或操作步骤。不要只贴最终图片。
+  validations:
+    required: true
+- type: textarea
+  id: environment
+  attributes:
+    label: 版本与环境
+    description: 填写已知项即可；版本未知可写“不清楚”。
+    value: '- Skill commit（可用 git rev-parse --short HEAD）：
+
+      - 系统：
+
+      - Codex 模型：
+
+      - Python / draw.io Desktop 版本：
+
+      - 风格名称与版本：'
+  validations:
+    required: true
+- type: textarea
+  id: artifacts
+  attributes:
+    label: 截图、文件与日志
+    description: 可直接粘贴截图。可公开的 .drawio、hardware/layout/manifest JSON 可打包为 ZIP 上传；请去除私人路径。附报错或几何警告。
+  validations:
+    required: false
