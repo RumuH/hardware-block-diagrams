@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "name": "npu-hierarchy",
+  "view": "composition",
+  "tokens": {
+    "background": "#16262E",
+    "font_family": "Arial",
+    "font_size": 18,
+    "text_color": "#FFFFFF",
+    "border_color": "#88A4AF",
+    "colors": {
+      "container": "#223C48",
+      "control": "#3E5967",
+      "compute": "#A65008",
+      "vector": "#59328B",
+      "memory": "#28623A",
+      "interconnect": "#176178"
+    },
+    "edge_colors": {
+      "data": "#D8E8EE",
+      "control": "#C2D1D8",
+      "bus": "#D8E8EE",
+      "feedback": "#C2D1D8"
+    },
+    "edge_width": 2,
+    "wide_width": 14,
+    "corner_radius": 0
+  },
+  "rules": [
+    "适用于组成视图；同构核等尺寸阵列，内部层级一致。",
+    "共享资源横跨所服务的计算区域；包含、连接、共享关系分别表达。",
+    "控制、计算、向量、存储、互连类别色，不推断为时钟域。",
+    "只迁移画法，不复制样本的核数量、容量或接口。"
+  ],
+  "sample_ids": [
+    "user-npu-reference"
+  ]
+}

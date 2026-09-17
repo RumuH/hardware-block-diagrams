@@ -1,0 +1,6 @@
+interface:
+  display_name: "硬件框图与风格学习"
+  short_description: "绘制 CPU、FPGA 与 SoC 硬件框图，保留可编辑结构并持续学习个人画法"
+  default_prompt: "使用 $hardware-block-diagrams，根据我的硬件组成和数据流绘制可编辑框图，并选用已批准的参考风格。"
+policy:
+  allow_implicit_invocation: true

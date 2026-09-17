@@ -1,0 +1,5 @@
+# JSON authoring and library operations use Python standard library only.
+# Install these only for YAML input and optional PDF/image inspection helpers.
+PyYAML>=6.0,<7
+Pillow>=10,<13
+PyMuPDF>=1.24,<2

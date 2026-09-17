@@ -1,0 +1,315 @@
+{
+  "version": 1,
+  "title": "CPU Microarchitecture — parallel execution and writeback",
+  "view": "microarchitecture",
+  "modules": [
+    {
+      "id": "front",
+      "label": "FRONT END",
+      "kind": "frontend"
+    },
+    {
+      "id": "ifu",
+      "label": "IFU",
+      "kind": "block",
+      "parent": "front"
+    },
+    {
+      "id": "bpu",
+      "label": "BPU",
+      "kind": "block",
+      "parent": "ifu"
+    },
+    {
+      "id": "ifetch",
+      "label": "IFETCH",
+      "kind": "block",
+      "parent": "ifu"
+    },
+    {
+      "id": "idu",
+      "label": "IDU",
+      "kind": "block",
+      "parent": "front"
+    },
+    {
+      "id": "decoder",
+      "label": "Decoder / RSU",
+      "kind": "storage",
+      "parent": "idu"
+    },
+    {
+      "id": "exec",
+      "label": "EXECUTION ENGINE",
+      "kind": "execution"
+    },
+    {
+      "id": "issue",
+      "label": "Register access and dispatch",
+      "kind": "issue",
+      "parent": "exec"
+    },
+    {
+      "id": "csr",
+      "label": "CSR_REG",
+      "kind": "storage",
+      "parent": "issue"
+    },
+    {
+      "id": "gpr",
+      "label": "GPR",
+      "kind": "storage",
+      "parent": "issue"
+    },
+    {
+      "id": "fpr",
+      "label": "FPR",
+      "kind": "storage",
+      "parent": "issue"
+    },
+    {
+      "id": "hdu",
+      "label": "HDU",
+      "kind": "block",
+      "parent": "issue"
+    },
+    {
+      "id": "dispatch",
+      "label": "DISPATCH",
+      "kind": "block",
+      "parent": "issue"
+    },
+    {
+      "id": "bru",
+      "label": "BRU",
+      "kind": "compute",
+      "parent": "exec"
+    },
+    {
+      "id": "fpu",
+      "label": "FPU",
+      "kind": "compute",
+      "parent": "exec"
+    },
+    {
+      "id": "alu",
+      "label": "ALU",
+      "kind": "compute",
+      "parent": "exec"
+    },
+    {
+      "id": "mul",
+      "label": "3-stage\nMUL",
+      "kind": "compute",
+      "parent": "exec"
+    },
+    {
+      "id": "div",
+      "label": "DIV",
+      "kind": "compute",
+      "parent": "exec"
+    },
+    {
+      "id": "csru",
+      "label": "CSRU",
+      "kind": "compute",
+      "parent": "exec"
+    },
+    {
+      "id": "lsu",
+      "label": "LSU",
+      "kind": "compute",
+      "parent": "exec"
+    },
+    {
+      "id": "wbu",
+      "label": "WBU — 32 entries",
+      "kind": "issue",
+      "parent": "exec"
+    },
+    {
+      "id": "memory",
+      "label": "MEMORY SUBSYSTEM",
+      "kind": "memory"
+    },
+    {
+      "id": "mem",
+      "label": "MEM",
+      "kind": "block",
+      "parent": "memory"
+    },
+    {
+      "id": "dtcm",
+      "label": "DTCM",
+      "kind": "storage",
+      "parent": "mem"
+    },
+    {
+      "id": "itcm",
+      "label": "ITCM",
+      "kind": "storage",
+      "parent": "mem"
+    },
+    {
+      "id": "control",
+      "label": "CONTROL SUBSYSTEM",
+      "kind": "control"
+    },
+    {
+      "id": "clint",
+      "label": "CLINT",
+      "kind": "block",
+      "parent": "control"
+    },
+    {
+      "id": "plic",
+      "label": "PLIC",
+      "kind": "block",
+      "parent": "control"
+    }
+  ],
+  "connections": [
+    {
+      "id": "bpu-fetch",
+      "source": "bpu",
+      "target": "ifetch",
+      "kind": "data"
+    },
+    {
+      "id": "fetch-idu",
+      "source": "ifu",
+      "target": "idu",
+      "kind": "data"
+    },
+    {
+      "id": "idu-issue",
+      "source": "idu",
+      "target": "issue",
+      "kind": "data"
+    },
+    {
+      "id": "csr-dispatch",
+      "source": "csr",
+      "target": "dispatch",
+      "kind": "data"
+    },
+    {
+      "id": "gpr-dispatch",
+      "source": "gpr",
+      "target": "dispatch",
+      "kind": "data"
+    },
+    {
+      "id": "fpr-dispatch",
+      "source": "fpr",
+      "target": "dispatch",
+      "kind": "data"
+    },
+    {
+      "id": "dispatch-bru",
+      "source": "dispatch",
+      "target": "bru",
+      "kind": "data"
+    },
+    {
+      "id": "bru-wbu",
+      "source": "bru",
+      "target": "wbu",
+      "kind": "data"
+    },
+    {
+      "id": "dispatch-fpu",
+      "source": "dispatch",
+      "target": "fpu",
+      "kind": "data"
+    },
+    {
+      "id": "fpu-wbu",
+      "source": "fpu",
+      "target": "wbu",
+      "kind": "data"
+    },
+    {
+      "id": "dispatch-alu",
+      "source": "dispatch",
+      "target": "alu",
+      "kind": "data"
+    },
+    {
+      "id": "alu-wbu",
+      "source": "alu",
+      "target": "wbu",
+      "kind": "data"
+    },
+    {
+      "id": "dispatch-mul",
+      "source": "dispatch",
+      "target": "mul",
+      "kind": "data"
+    },
+    {
+      "id": "mul-wbu",
+      "source": "mul",
+      "target": "wbu",
+      "kind": "data"
+    },
+    {
+      "id": "dispatch-div",
+      "source": "dispatch",
+      "target": "div",
+      "kind": "data"
+    },
+    {
+      "id": "div-wbu",
+      "source": "div",
+      "target": "wbu",
+      "kind": "data"
+    },
+    {
+      "id": "dispatch-csru",
+      "source": "dispatch",
+      "target": "csru",
+      "kind": "data"
+    },
+    {
+      "id": "csru-wbu",
+      "source": "csru",
+      "target": "wbu",
+      "kind": "data"
+    },
+    {
+      "id": "dispatch-lsu",
+      "source": "dispatch",
+      "target": "lsu",
+      "kind": "data"
+    },
+    {
+      "id": "lsu-wbu",
+      "source": "lsu",
+      "target": "wbu",
+      "kind": "data"
+    },
+    {
+      "id": "writeback",
+      "source": "wbu",
+      "target": "issue",
+      "kind": "feedback"
+    },
+    {
+      "id": "fetch-memory",
+      "source": "ifetch",
+      "target": "mem",
+      "kind": "bus"
+    },
+    {
+      "id": "load-store",
+      "source": "lsu",
+      "target": "mem",
+      "kind": "bus"
+    }
+  ],
+  "metadata": {
+    "purpose": "User-reference representative detail, not a full architectural specification",
+    "source": "user-approved reference images, 2026-09-16"
+  }
+}

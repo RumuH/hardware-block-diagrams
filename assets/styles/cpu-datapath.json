@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "name": "cpu-datapath",
+  "view": "microarchitecture",
+  "tokens": {
+    "background": "#FFFFFF",
+    "font_family": "Arial",
+    "font_size": 20,
+    "text_color": "#172534",
+    "border_color": "#55646D",
+    "colors": {
+      "container": "#F2F4F7",
+      "frontend": "#FFF0AD",
+      "execution": "#D6E3B9",
+      "issue": "#DAA09B",
+      "memory": "#D2B4EF",
+      "control": "#E5B4AB",
+      "compute": "#C5E7F1",
+      "block": "#FFF0E1",
+      "storage": "#F0C7C0"
+    },
+    "edge_colors": {
+      "data": "#AD68DE",
+      "feedback": "#AD68DE",
+      "bus": "#94AC66",
+      "control": "#CA5252",
+      "clock": "#687482",
+      "reset": "#687482"
+    },
+    "edge_width": 2,
+    "wide_width": 20,
+    "corner_radius": 0
+  },
+  "rules": [
+    "适用于CPU微架构；前端、执行、控制、存储分区明确。",
+    "并行功能单元等基线排布，公共分发和写回覆盖服务范围。",
+    "主数据通路用宽箭头，回写反馈预留外侧通道。",
+    "不把图像透明区域误当黑色背景；不从颜色推断未给出的信号语义。",
+    "模块增删及位宽变更仅属于当前设计，不是风格。"
+  ],
+  "sample_ids": [
+    "user-cpu-reference"
+  ]
+}

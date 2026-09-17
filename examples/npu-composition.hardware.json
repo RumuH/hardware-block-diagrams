@@ -1,0 +1,217 @@
+{
+  "version": 1,
+  "title": "NPU Node — hierarchy and shared resources",
+  "view": "composition",
+  "modules": [
+    {
+      "id": "node",
+      "label": "NPU NODE",
+      "kind": "container"
+    },
+    {
+      "id": "controller",
+      "label": "Node Controller / Descriptor Engine",
+      "kind": "control",
+      "parent": "node"
+    },
+    {
+      "id": "cluster",
+      "label": "GEMM CORE CLUSTER — 4 physical cores (2 × 2)",
+      "kind": "compute",
+      "parent": "node"
+    },
+    {
+      "id": "core0",
+      "label": "GEMM Core 0",
+      "kind": "compute",
+      "parent": "cluster"
+    },
+    {
+      "id": "core0-ctl",
+      "label": "Controller / DMA / Access Control",
+      "kind": "control",
+      "parent": "core0"
+    },
+    {
+      "id": "core0-tile",
+      "label": "Operand Dispatch / RC Tile",
+      "kind": "compute",
+      "parent": "core0"
+    },
+    {
+      "id": "core0-result",
+      "label": "Result CDC + Result Stream",
+      "kind": "compute",
+      "parent": "core0"
+    },
+    {
+      "id": "core1",
+      "label": "GEMM Core 1",
+      "kind": "compute",
+      "parent": "cluster"
+    },
+    {
+      "id": "core1-ctl",
+      "label": "Controller / DMA / Access Control",
+      "kind": "control",
+      "parent": "core1"
+    },
+    {
+      "id": "core1-tile",
+      "label": "Operand Dispatch / RC Tile",
+      "kind": "compute",
+      "parent": "core1"
+    },
+    {
+      "id": "core1-result",
+      "label": "Result CDC + Result Stream",
+      "kind": "compute",
+      "parent": "core1"
+    },
+    {
+      "id": "core2",
+      "label": "GEMM Core 2",
+      "kind": "compute",
+      "parent": "cluster"
+    },
+    {
+      "id": "core2-ctl",
+      "label": "Controller / DMA / Access Control",
+      "kind": "control",
+      "parent": "core2"
+    },
+    {
+      "id": "core2-tile",
+      "label": "Operand Dispatch / RC Tile",
+      "kind": "compute",
+      "parent": "core2"
+    },
+    {
+      "id": "core2-result",
+      "label": "Result CDC + Result Stream",
+      "kind": "compute",
+      "parent": "core2"
+    },
+    {
+      "id": "core3",
+      "label": "GEMM Core 3",
+      "kind": "compute",
+      "parent": "cluster"
+    },
+    {
+      "id": "core3-ctl",
+      "label": "Controller / DMA / Access Control",
+      "kind": "control",
+      "parent": "core3"
+    },
+    {
+      "id": "core3-tile",
+      "label": "Operand Dispatch / RC Tile",
+      "kind": "compute",
+      "parent": "core3"
+    },
+    {
+      "id": "core3-result",
+      "label": "Result CDC + Result Stream",
+      "kind": "compute",
+      "parent": "core3"
+    },
+    {
+      "id": "vru",
+      "label": "VECTOR / REDUCTION UNIT",
+      "kind": "vector",
+      "parent": "node"
+    },
+    {
+      "id": "vru-io",
+      "label": "I/O Controller",
+      "kind": "vector",
+      "parent": "vru"
+    },
+    {
+      "id": "vru-load",
+      "label": "K32 Load Frontend",
+      "kind": "vector",
+      "parent": "vru"
+    },
+    {
+      "id": "vru-norm",
+      "label": "RMS Norm / LayerNorm\nDatapath",
+      "kind": "vector",
+      "parent": "vru"
+    },
+    {
+      "id": "vru-math",
+      "label": "Shared FP32 Math",
+      "kind": "vector",
+      "parent": "vru"
+    },
+    {
+      "id": "vru-store",
+      "label": "Replay SRAM / Store Frontend",
+      "kind": "vector",
+      "parent": "vru"
+    },
+    {
+      "id": "urf",
+      "label": "Unified Register File (URF) — shared by 4 GEMM cores + VRU",
+      "kind": "memory",
+      "shared_with": [
+        "core0",
+        "core1",
+        "core2",
+        "core3",
+        "vru"
+      ],
+      "parent": "node"
+    },
+    {
+      "id": "ub",
+      "label": "On-chip Buffer (UB) — Weights / Activations / Accumulators",
+      "kind": "interconnect",
+      "shared_with": [
+        "cluster",
+        "vru"
+      ],
+      "parent": "node"
+    },
+    {
+      "id": "ni",
+      "label": "Node Network Interface (NI) — Packetizer / Virtual Channels / Flow Control",
+      "kind": "interconnect",
+      "parent": "node"
+    }
+  ],
+  "connections": [
+    {
+      "id": "ctrl-cluster",
+      "source": "controller",
+      "target": "cluster",
+      "kind": "control"
+    },
+    {
+      "id": "ctrl-vru",
+      "source": "controller",
+      "target": "vru",
+      "kind": "control"
+    },
+    {
+      "id": "cluster-urf",
+      "source": "cluster",
+      "target": "urf",
+      "kind": "data",
+      "bidirectional": true
+    },
+    {
+      "id": "vru-urf",
+      "source": "vru",
+      "target": "urf",
+      "kind": "data",
+      "bidirectional": true
+    }
+  ],
+  "metadata": {
+    "purpose": "User-reference representative detail, not a full architectural specification",
+    "source": "user-approved reference images, 2026-09-16"
+  }
+}
