@@ -46,6 +46,6 @@ description: 绘制、修改 CPU 微架构和 FPGA/GPU/NPU/SoC 硬件框图，�
 
 ## 环境与来源
 
-Python 3.10+；JSON 路线仅需标准库，YAML 需要 PyYAML。draw.io Desktop 用于真实 SVG/PNG 导出。先检测依赖，不自动安装不相关应用或修改全局配置。该 skill 无必需 MCP、云服务或后台抓取。
+Python 3.10+（本机用 Kimi 托管 Python 即可，`python` 命令直接可用）；JSON 路线仅需标准库，YAML 需要 PyYAML。图片/PDF 查看直接用 Kimi 自身的媒体阅读能力，PDF 也可用托管环境的 pypdfium2 渲染；只有确需脚本化处理图片时才安装 Pillow/PyMuPDF（见 requirements-optional.txt）。draw.io Desktop 用于真实 SVG/PNG 导出：本机已便携安装于 `E:\KimiData\Tools\draw.io\draw.io.exe`，脚本自动探测；也可用环境变量 `DRAWIO_DESKTOP` 或 `--drawio` 指定。风格库默认 `~/.kimi/hardware-block-diagrams/`，本机通过环境变量 `HBD_LIBRARY` 指向 `E:\KimiData\kimi\hardware-block-diagrams`。先检测依赖，不自动安装不相关应用或修改全局配置。该 skill 无必需 MCP、云服务或后台抓取。
 
 改造依据与许可证见 [来源](references/upstream.md)。内置两种样式是从用户明确认可的构图提炼的起点，不宣称适用于所有硬件图；个人样本保存在用户库，不随可分享的 skill 包分发。

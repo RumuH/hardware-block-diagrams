@@ -2,9 +2,9 @@
 
 ## 学习是由模型分析、脚本持久化
 
-scripts/library.py 不做视觉识别。Codex 必须实际读图，从可观察证据生成风格 payload，再交给脚本验证及保存。读取图片文字不等于观察了布局。无视觉能力时不得声称已学习构图。
+scripts/library.py 不做视觉识别。Kimi 必须实际读图（直接用自身的图片/PDF 阅读能力），从可观察证据生成风格 payload，再交给脚本验证及保存。读取图片文字不等于观察了布局。无视觉能力时不得声称已学习构图。
 
-风格库默认 `~/.codex/hardware-block-diagrams/`，也可显式 `--root`。不修改其他 skill 的全局默认。样本保留本地快照/哈希/来源/审批证据，版本保留规则与样本引用。网络请求不在该脚本内执行。
+风格库默认 `~/.kimi/hardware-block-diagrams/`（本机通过环境变量 `HBD_LIBRARY` 指向 `E:\KimiData\kimi\hardware-block-diagrams`），也可显式 `--root`。不修改其他 skill 的全局默认。样本保留本地快照/哈希/来源/审批证据，版本保留规则与样本引用。网络请求不在该脚本内执行。
 
 ## 样本处理
 

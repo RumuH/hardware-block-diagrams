@@ -181,7 +181,7 @@ def validate_profile(p, style=None):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Local approved-sample and immutable style library")
-    ap.add_argument("--root", default="~/.codex/hardware-block-diagrams")
+    ap.add_argument("--root", default=os.environ.get("HBD_LIBRARY", "~/.kimi/hardware-block-diagrams"))
     sub = ap.add_subparsers(dest="cmd", required=True)
     x=sub.add_parser("sample-add"); x.add_argument("--id",required=True); x.add_argument("--file",required=True); x.add_argument("--origin",required=True, choices=sorted(ORIGINS)); x.add_argument("--source",required=True); x.add_argument("--page")
     for name,status in (("approve","approved"),("reject","rejected")):

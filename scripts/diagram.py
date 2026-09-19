@@ -543,10 +543,27 @@ def _drawio_binary(provided):
     if provided:
         p = Path(provided)
         return str(p) if p.exists() else None
-    for name in ("drawio","draw.io","/Applications/draw.io.app/Contents/MacOS/draw.io",str(Path.home()/"Applications/draw.io.app/Contents/MacOS/draw.io")):
-        found = shutil.which(name) if "/" not in name else name if Path(name).exists() else None
+    env = os.environ.get("DRAWIO_DESKTOP")
+    if env and Path(env).exists():
+        return env
+    for name in ("drawio","draw.io","drawio.exe","draw.io.exe"):
+        found = shutil.which(name)
         if found:
             return found
+    candidates = [
+        "/Applications/draw.io.app/Contents/MacOS/draw.io",
+        str(Path.home()/"Applications/draw.io.app/Contents/MacOS/draw.io"),
+        r"E:\KimiData\Tools\draw.io\draw.io.exe",  # portable install on this machine
+    ]
+    local = os.environ.get("LOCALAPPDATA")
+    if local:
+        candidates.append(str(Path(local)/"Programs"/"draw.io"/"draw.io.exe"))
+    for root in (os.environ.get("ProgramFiles"), os.environ.get("ProgramFiles(x86)")):
+        if root:
+            candidates.append(str(Path(root)/"draw.io"/"draw.io.exe"))
+    for name in candidates:
+        if Path(name).exists():
+            return name
     return None
 
 

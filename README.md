@@ -1,20 +1,20 @@
 # Hardware Block Diagrams
 
-面向 Codex 的硬件框图 skill。根据用户或上游 agent 提供的硬件结构和数据流，绘制 CPU 微架构、GPU/NPU 阵列、FPGA 和 SoC 组成图，输出可编辑的 **draw.io、SVG、PNG**。
+面向 Kimi 的硬件框图 skill。根据用户或上游 agent 提供的硬件结构和数据流，绘制 CPU 微架构、GPU/NPU 阵列、FPGA 和 SoC 组成图，输出可编辑的 **draw.io、SVG、PNG**。
 
 重点表达模块包含关系、重复实例、共享资源、并行通路和反馈；不把所有硬件都画成顺序流程图。
 
 ## 能力与边界
 
-- 将自然语言或 JSON/YAML 设计输入规范化为硬件描述，由 Codex 安排布局。
+- 将自然语言或 JSON/YAML 设计输入规范化为硬件描述，由 Kimi 安排布局。
 - 检查层级、端口方向、已知位宽与协议，以及部分几何问题。
 - 根据连接关系比较模块排布，允许移动框、调整接口侧边和容器尺寸，检查重排前后的走线代价。
 - 对选定的节点布局生成正交走线候选，可居中均分同侧端点，报告折点、交叉和重线；渲染默认拒绝斜线。
 - 生成原生 draw.io 容器和绑定连接，使用 draw.io Desktop 导出图片。
 - 从获批样本提炼具名风格；从明确的用户改图追加版本，支持回退。
-- 用户风格库保存在 `~/.codex/hardware-block-diagrams/`，与程序源码分离。
+- 用户风格库保存在 `~/.kimi/hardware-block-diagrams/`（本机环境变量 `HBD_LIBRARY` 指向 E 盘），与程序源码分离。
 
-“学习”指模型观察参考图并保存构图规则和样式参数，不训练模型权重。脚本不自动识别图片、不证明 RTL 正确，也不能取代实际 PNG 视觉检查。布局由 Codex 生成，布线工具不会自动移动模块，也不保证全局最优，仍需检查实际图片。
+“学习”指模型观察参考图并保存构图规则和样式参数，不训练模型权重。脚本不自动识别图片、不证明 RTL 正确，也不能取代实际 PNG 视觉检查。布局由 Kimi 生成，布线工具不会自动移动模块，也不保证全局最优，仍需检查实际图片。
 
 ## 安装
 
@@ -23,7 +23,7 @@
 在尚未存在同名 skill 目录时：
 
 ```bash
-git clone https://github.com/RumuH/hardware-block-diagrams.git ~/.codex/skills/hardware-block-diagrams
+git clone https://github.com/RumuH/hardware-block-diagrams.git <skills-dir>/hardware-block-diagrams
 ```
 
 已有安装时先保留本地改动，再更新，不要直接覆盖。个人学习库不在该 Git 仓库内。
@@ -36,7 +36,7 @@ git clone https://github.com/RumuH/hardware-block-diagrams.git ~/.codex/skills/h
 
 ## 文件与命令
 
-- [SKILL.md](SKILL.md)：Codex 工作流程。
+- [SKILL.md](SKILL.md)：Kimi 工作流程。
 - [输入和布局契约](references/interface-contract.md)：用户或上游 agent 的数据格式。
 - [运行命令](references/commands.md)：验证、绘制、导入及风格库管理。
 - [学习与反馈](references/learning.md)：审批、风格版本与回退。
@@ -45,10 +45,10 @@ git clone https://github.com/RumuH/hardware-block-diagrams.git ~/.codex/skills/h
 从仓库根目录验证示例：
 
 ```bash
-python3 scripts/diagram.py validate examples/npu-composition.hardware.json --layout examples/npu-composition.layout.json
-python3 scripts/diagram.py render examples/npu-composition.hardware.json --layout examples/npu-composition.layout.json --style assets/styles/npu-hierarchy.json --output /absolute/output/npu
-python3 -m unittest discover -s tests -v
-python3 -m compileall -q scripts
+python scripts/diagram.py validate examples/npu-composition.hardware.json --layout examples/npu-composition.layout.json
+python scripts/diagram.py render examples/npu-composition.hardware.json --layout examples/npu-composition.layout.json --style assets/styles/npu-hierarchy.json --output /absolute/output/npu
+python -m unittest discover -s tests -v
+python -m compileall -q scripts
 ```
 
 示例是构图验证用的简化设计，不是芯片规格或完整原图复刻。内置两种起始样式；用户原图、下载的第三方图片、个人学习库、研究仓库和工作区其他 skill 均不包含在发布内容中。内置样式的样本 ID 是来源标识，其他机器不会因此获得相应私人样本或审批记录。
@@ -59,6 +59,6 @@ python3 -m compileall -q scripts
 
 优先提供最小硬件描述、所用风格和版本、期望/实际结果，以及截图或可公开的复现文件。无需为反馈提供完整工程。风格参考图的使用意图在表单中单独说明。
 
-维护者可以让 Codex “读取本仓库 issue #编号，复现问题并修复”。处理顺序为核对输入、复现、修正、针对性验证，并在提交或 PR 中关联 issue。涉及图形变化时需检查实际导出的 PNG。详见 [反馈处理说明](CONTRIBUTING.md)。
+维护者可以让 Kimi “读取本仓库 issue #编号，复现问题并修复”。处理顺序为核对输入、复现、修正、针对性验证，并在提交或 PR 中关联 issue。涉及图形变化时需检查实际导出的 PNG。详见 [反馈处理说明](CONTRIBUTING.md)。
 
-当前入口负责收集反馈，不会自动启动 Codex、修改代码或发布版本；自动巡检需单独配置。
+当前入口负责收集反馈，不会自动启动 Kimi、修改代码或发布版本；自动巡检需单独配置。
