@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "title": "Routing alignment demonstration",
+  "view": "microarchitecture",
+  "modules": [
+    {
+      "id": "a",
+      "label": "Input A",
+      "kind": "block"
+    },
+    {
+      "id": "b",
+      "label": "Input B",
+      "kind": "block"
+    },
+    {
+      "id": "hub",
+      "label": "Controller",
+      "kind": "control"
+    },
+    {
+      "id": "target",
+      "label": "Execution",
+      "kind": "compute"
+    }
+  ],
+  "connections": [
+    {
+      "id": "a_to_hub",
+      "source": "a",
+      "target": "hub",
+      "kind": "data"
+    },
+    {
+      "id": "b_to_hub",
+      "source": "b",
+      "target": "hub",
+      "kind": "data"
+    },
+    {
+      "id": "dispatch",
+      "source": "hub",
+      "target": "target",
+      "kind": "data"
+    },
+    {
+      "id": "feedback",
+      "source": "target",
+      "target": "hub",
+      "kind": "feedback"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "canvas": {
+    "width": 1100,
+    "height": 800
+  },
+  "nodes": {
+    "a": {
+      "x": 80,
+      "y": 340,
+      "w": 200,
+      "h": 100
+    },
+    "b": {
+      "x": 820,
+      "y": 340,
+      "w": 200,
+      "h": 100
+    },
+    "arb": {
+      "x": 450,
+      "y": 80,
+      "w": 200,
+      "h": 100
+    },
+    "mem": {
+      "x": 450,
+      "y": 340,
+      "w": 200,
+      "h": 100
+    },
+    "done": {
+      "x": 450,
+      "y": 620,
+      "w": 200,
+      "h": 100
+    }
+  },
+  "edges": {
+    "a_req": {
+      "source_side": "top",
+      "target_side": "left",
+      "points": [
+        [
+          180,
+          130
+        ]
+      ]
+    },
+    "b_req": {
+      "source_side": "top",
+      "target_side": "right",
+      "points": [
+        [
+          920,
+          130
+        ]
+      ]
+    },
+    "request": {
+      "source_side": "bottom",
+      "target_side": "top",
+      "points": []
+    },
+    "read": {
+      "source_side": "left",
+      "target_side": "right",
+      "points": []
+    },
+    "write": {
+      "source_side": "left",
+      "target_side": "right",
+      "points": []
+    },
+    "complete": {
+      "source_side": "bottom",
+      "target_side": "top",
+      "points": []
+    },
+    "a_done": {
+      "source_side": "left",
+      "target_side": "bottom",
+      "points": [
+        [
+          180,
+          670
+        ]
+      ]
+    },
+    "b_done": {
+      "source_side": "right",
+      "target_side": "bottom",
+      "points": [
+        [
+          920,
+          670
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "canvas": {
+    "width": 920,
+    "height": 580
+  },
+  "nodes": {
+    "a": {
+      "x": 190,
+      "y": 60,
+      "w": 100,
+      "h": 80
+    },
+    "b": {
+      "x": 310,
+      "y": 60,
+      "w": 100,
+      "h": 80
+    },
+    "hub": {
+      "x": 120,
+      "y": 240,
+      "w": 360,
+      "h": 180
+    },
+    "target": {
+      "x": 650,
+      "y": 270,
+      "w": 160,
+      "h": 120
+    }
+  },
+  "edges": {
+    "a_to_hub": {
+      "source_side": "bottom",
+      "target_side": "top",
+      "source_pos": 0.5,
+      "target_pos": 0.3333333333333333,
+      "points": []
+    },
+    "b_to_hub": {
+      "source_side": "bottom",
+      "target_side": "top",
+      "source_pos": 0.5,
+      "target_pos": 0.6666666666666666,
+      "points": []
+    },
+    "dispatch": {
+      "source_side": "right",
+      "target_side": "left",
+      "points": [],
+      "source_pos": 0.5,
+      "target_pos": 0.5
+    },
+    "feedback": {
+      "source_side": "bottom",
+      "target_side": "bottom",
+      "points": [
+        [
+          730.0,
+          436.0
+        ],
+        [
+          300.0,
+          436.0
+        ]
+      ],
+      "target_pos": 0.5,
+      "source_pos": 0.5
+    }
+  }
+}

@@ -163,13 +163,13 @@ def validate_profile(p, style=None):
     if not isinstance(p.get("view"), str) or p.get("view") not in VIEWS: raise ValueError("view must be composition or microarchitecture")
     t = p.get("tokens")
     if not isinstance(t, dict): raise ValueError("tokens must be an object")
-    token_keys = {"background", "font_family", "font_size", "text_color", "border_color", "colors", "edge_colors", "edge_width", "wide_width", "corner_radius"}
+    token_keys = {"background", "font_family", "font_size", "edge_font_size", "text_color", "border_color", "colors", "edge_colors", "edge_width", "wide_width", "corner_radius"}
     unknown_tokens = set(t) - token_keys
     if unknown_tokens: raise ValueError(f"unknown style tokens: {', '.join(sorted(unknown_tokens))}")
     for k in ("background", "text_color", "border_color"):
         if k in t and (not isinstance(t[k], str) or not HEX.fullmatch(t[k])): raise ValueError(f"invalid color token: {k}")
     if "font_family" in t and not isinstance(t["font_family"], str): raise ValueError("font_family must be a string")
-    for k in ("font_size", "edge_width", "wide_width"):
+    for k in ("font_size", "edge_font_size", "edge_width", "wide_width"):
         if k in t and (not isinstance(t[k], (int, float)) or isinstance(t[k], bool) or not math.isfinite(t[k]) or t[k] <= 0): raise ValueError(f"{k} must be a finite positive number")
     if "corner_radius" in t and (not isinstance(t["corner_radius"], (int, float)) or isinstance(t["corner_radius"], bool) or not math.isfinite(t["corner_radius"]) or t["corner_radius"] < 0): raise ValueError("corner_radius must be a finite nonnegative number")
     for k in ("colors", "edge_colors"):

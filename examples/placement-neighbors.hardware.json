@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "title": "DMA interface placement study",
+  "view": "microarchitecture",
+  "modules": [
+    {
+      "id": "input",
+      "label": "Descriptor input",
+      "kind": "frontend"
+    },
+    {
+      "id": "dma",
+      "label": "DMA engine",
+      "kind": "compute"
+    },
+    {
+      "id": "axi",
+      "label": "AXI interface",
+      "kind": "frontend"
+    },
+    {
+      "id": "queue",
+      "label": "Completion FIFO",
+      "kind": "storage"
+    },
+    {
+      "id": "done",
+      "label": "Completion output",
+      "kind": "frontend"
+    }
+  ],
+  "connections": [
+    {
+      "id": "a",
+      "source": "input",
+      "target": "dma",
+      "kind": "data"
+    },
+    {
+      "id": "b",
+      "source": "dma",
+      "target": "axi",
+      "kind": "bus"
+    },
+    {
+      "id": "c",
+      "source": "dma",
+      "target": "queue",
+      "kind": "feedback"
+    },
+    {
+      "id": "d",
+      "source": "queue",
+      "target": "done",
+      "kind": "feedback"
+    }
+  ]
+}

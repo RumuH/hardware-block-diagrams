@@ -62,3 +62,43 @@ python3 scripts/diagram.py import /absolute/edited.drawio --output /absolute/wor
 ## 可移植性
 
 脚本主功能仅使用 Python 标准库。YAML 输入需要 PyYAML；图像或 PDF 辅助处理可使用 Pillow、PyMuPDF（见 requirements-optional.txt），按实际需要安装到虚拟环境。PDF 读取可使用环境已有工具，缺少能力时说明问题，不伪称已看过。
+
+## 先比较模块排布
+
+复杂图先按 [placement.md](placement.md) 设计不同的模块排列，再处理路由。比较工具只读现有路径，不会移动模块或重算线；两个 layout 使用相同 hardware，避免通过删信号改善指标。
+
+```bash
+python3 scripts/compare_layouts.py /absolute/work/hardware.json --before /absolute/work/baseline.layout.json --after /absolute/work/candidate.layout.json --report /absolute/work/placement-comparison.json
+```
+
+报告列出移动/缩放的模块、改变的端口侧边、线长、折点、交叉/接触、共线重叠、穿框和节点重叠。指标不是单一排名，也不证明视觉合格；先看结构与碰撞，再比较长度、折点和画幅。带斜线的基线不能直接拿折点数和正交候选比优劣。返回 0 仅表示结构可比较，所有 warnings 和实际 PNG 仍需审查。
+
+可复用的最小示例展示把完成队列及输出移到生产者附近，保留相同硬件连接：
+
+```bash
+python3 scripts/compare_layouts.py examples/placement-neighbors.hardware.json --before examples/placement-neighbors.before.layout.json --after examples/placement-neighbors.after.layout.json
+python3 scripts/diagram.py render examples/placement-neighbors.hardware.json --layout examples/placement-neighbors.after.layout.json --style assets/styles/cpu-datapath.json --output /absolute/output/placement-after
+```
+
+另一个构图示例 `examples/shared-hub.*.json` 展示共享资源居中、请求汇聚与完成分派分居上下、访问单元分居两侧；可用相同 render 命令及 cpu-datapath 样式查看。
+
+## 复杂连线整理
+
+选定模块排列与接口侧边后，才使用固定节点布线工具生成独立候选：
+
+```bash
+python3 scripts/routing.py /absolute/work/hardware.json --layout /absolute/work/layout.json --output /absolute/work/routed.layout.json --report /absolute/work/routing-report.json
+python3 scripts/diagram.py render /absolute/work/hardware.json --layout /absolute/work/routed.layout.json --style /absolute/work/style.json --output /absolute/output/design
+```
+
+默认 `--ports preserve` 保留指定端点比例。需要同侧端点整体均匀居中时加 `--ports spread`（输入输出一起计数）。`--clearance 16` 是默认障碍留白和折线路径端部直线段的最小长度，单位为画布坐标；宽箭头可增大。真正可直连的短距离无需绕折。
+
+工具保持节点和硬件描述不变，重算显式折点。返回 0 表示得到可用正交路径候选，1 表示输入错误或部分边无解；失败时不发布部分布局，也不能继续使用上次遗留输出冒充本次结果。报告列出折点、交叉、重线及需要复核的标签。复杂图不保证全局最少交叉；自动结果还需视觉检查。
+
+已有固定外侧通道可能被改变；保持原始布局。需要更少折点时先调整节点对齐，而不是强制 spread 后接受更多绕行。端部空间不足或父子边界连接方向不适合时，工具会报告无解，需要调整布局/端口侧边。
+
+`render` 默认拒绝斜线；仅对用户明确要求的斜线构图使用 `--allow-nonorthogonal`。`validate` 仍保留诊断兼容行为，其返回 0 不代表所有走线警告已处理。
+
+`examples/routing-alignment.*.json` 展示两条上沿连接的居中等距和外侧反馈，可使用 `assets/styles/cpu-datapath.json` 渲染。连线完整规则见 [routing.md](routing.md)。
+
+连线文字过小时可在风格 tokens 中设置 `edge_font_size`，无需像旧项目那样导出后手工修改 XML；字号变化后仍需检查标签重叠。

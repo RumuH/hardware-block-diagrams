@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "canvas": {
+    "width": 1200,
+    "height": 580
+  },
+  "nodes": {
+    "input": {
+      "x": 60,
+      "y": 100,
+      "w": 180,
+      "h": 90
+    },
+    "dma": {
+      "x": 440,
+      "y": 100,
+      "w": 180,
+      "h": 90
+    },
+    "axi": {
+      "x": 940,
+      "y": 100,
+      "w": 180,
+      "h": 90
+    },
+    "queue": {
+      "x": 440,
+      "y": 350,
+      "w": 180,
+      "h": 90
+    },
+    "done": {
+      "x": 940,
+      "y": 350,
+      "w": 180,
+      "h": 90
+    }
+  },
+  "edges": {
+    "a": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.5,
+      "points": []
+    },
+    "b": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.5,
+      "points": []
+    },
+    "c": {
+      "source_side": "bottom",
+      "target_side": "top",
+      "source_pos": 0.5,
+      "target_pos": 0.5,
+      "points": []
+    },
+    "d": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.5,
+      "points": []
+    }
+  }
+}

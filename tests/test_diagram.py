@@ -36,7 +36,7 @@ def fixture():
             "alu": {"x": 100, "y": 130, "w": 120, "h": 80},
             "rf": {"x": 350, "y": 130, "w": 130, "h": 80},
         },
-        "edges": {"writeback": {"source_side": "right", "target_side": "left", "points": [[280, 240]], "wide": True}},
+        "edges": {"writeback": {"source_side": "right", "target_side": "left", "points": [[280, 170]], "wide": True}},
     }
     style = {"version": 1, "name": "test", "view": "microarchitecture", "tokens": {"wide_width": 14}}
     return hardware, layout, style
@@ -142,11 +142,13 @@ class GeometryTests(unittest.TestCase):
         h, l, s = fixture()
         h["connections"][0]["protocol"] = "AXI"
         s["tokens"]["corner_radius"] = 8
+        s["tokens"]["edge_font_size"] = 16
         doc = ET.fromstring(diagram.drawio_xml(h,l,s))
         cells = {c.get("id"): c for c in doc.iter("mxCell")}
         self.assertIn("rounded=1", cells["node:soc"].get("style"))
         self.assertIn("arcSize=16", cells["node:soc"].get("style"))
         self.assertEqual(cells["edge:writeback"].get("value"), "WB · AXI · 32-bit")
+        self.assertIn("fontSize=16", cells["edge:writeback"].get("style"))
 
     def test_route_diagnostics(self):
         h, l, _ = fixture()
@@ -231,6 +233,18 @@ class FileTests(unittest.TestCase):
         path = Path(folder) / f"{name}.json"
         path.write_text(json.dumps(data))
         return path
+
+    def test_diagonal_render_rejected_unless_explicit(self):
+        h, l, s = fixture()
+        l["edges"]["writeback"]["points"] = [[280, 240]]
+        with tempfile.TemporaryDirectory() as tmp:
+            prefix = Path(tmp) / "cpu"
+            prefix.with_suffix(".drawio").write_text("previous")
+            with self.assertRaisesRegex(diagram.DiagramError, "Orthogonal routing required"):
+                diagram.render(h, l, s, prefix)
+            self.assertEqual(prefix.with_suffix(".drawio").read_text(), "previous")
+            result = diagram.render(h, l, s, prefix, drawio=str(Path(tmp)/"missing"), allow_nonorthogonal=True)
+            self.assertTrue(any("nonorthogonal" in w for w in result["issues"]["warnings"]))
 
     def test_invalid_render_does_not_overwrite(self):
         h, l, s = fixture()

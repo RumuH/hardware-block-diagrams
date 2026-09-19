@@ -368,9 +368,9 @@ def validate_layout(layout, hardware, semantic=None):
                                 break
                     for j,(start,end) in enumerate(zip(path,path[1:])):
                         dx,dy=end[0]-start[0],end[1]-start[1]
-                        if dx==0 and dy==0:
+                        if abs(dx)<1e-6 and abs(dy)<1e-6:
                             warnings.append(f"edges.{cid}: zero-length segment {j+1}")
-                        elif dx!=0 and dy!=0:
+                        elif abs(dx)>=1e-6 and abs(dy)>=1e-6:
                             warnings.append(f"edges.{cid}: nonorthogonal segment {j+1}")
                     if len(path)>1:
                         sx,sy=path[1][0]-a[0],path[1][1]-a[1]
@@ -402,8 +402,8 @@ def validate_style(style):
     if not _choice(s.get("view"), {"composition", "microarchitecture"}):
         errors.append("style.view: invalid value")
     t = _mapping(s.get("tokens", {}), "style.tokens", errors)
-    _keys(t, {"background", "font_family", "font_size", "text_color", "border_color", "colors", "edge_colors", "edge_width", "wide_width", "corner_radius"}, "style.tokens", errors)
-    for key in ("font_size", "edge_width", "wide_width"):
+    _keys(t, {"background", "font_family", "font_size", "edge_font_size", "text_color", "border_color", "colors", "edge_colors", "edge_width", "wide_width", "corner_radius"}, "style.tokens", errors)
+    for key in ("font_size", "edge_font_size", "edge_width", "wide_width"):
         if key in t and (not _number(t[key]) or t[key] <= 0):
             errors.append(f"style.tokens.{key}: expected positive number")
     if "corner_radius" in t and (not _number(t["corner_radius"]) or t["corner_radius"] < 0):
@@ -493,6 +493,7 @@ def drawio_xml(hardware, layout, style):
             parts[7] = f"exitX={e.get('source_pos',.5)}"
         if e["target_side"] in {"top","bottom"}:
             parts[9] = f"entryX={e.get('target_pos',.5)}"
+        parts.extend([f"fontSize={t.get('edge_font_size', 11)}", f"fontFamily={t.get('font_family', 'Helvetica')}"])
         if c.get("bidirectional"):
             parts.extend(["startArrow=block","startFill=1"])
         if wide:
@@ -549,11 +550,16 @@ def _drawio_binary(provided):
     return None
 
 
-def render(hardware,layout,style,prefix,drawio=None,style_revision=None):
+def render(hardware,layout,style,prefix,drawio=None,style_revision=None,allow_nonorthogonal=False):
     sem=validate_hardware(hardware)
     lay=validate_layout(layout,hardware,sem)
     sty=validate_style(style)
     errors=sem["errors"]+lay["errors"]+sty
+    if not allow_nonorthogonal:
+        diagonal = [w for w in lay["warnings"] if ": nonorthogonal segment " in w]
+        if diagonal:
+            errors.extend(diagonal)
+            errors.append("Orthogonal routing required: align anchors or use scripts/routing.py; --allow-nonorthogonal is for explicitly requested diagonal designs only.")
     if isinstance(style,dict) and isinstance(hardware,dict) and style.get("view") != hardware.get("view"):
         errors.append("style.view: differs from hardware.view")
     if errors:
@@ -661,6 +667,7 @@ def main(argv=None):
     ren.add_argument("--output",required=True)
     ren.add_argument("--drawio")
     ren.add_argument("--style-revision",type=int)
+    ren.add_argument("--allow-nonorthogonal",action="store_true",help="Allow intentionally diagonal routes; warnings remain in manifest")
     imp=sub.add_parser("import")
     imp.add_argument("edited_drawio")
     imp.add_argument("--output",required=True)
@@ -685,7 +692,7 @@ def main(argv=None):
             report={"errors":sem["errors"]+lay["errors"],"warnings":sem["warnings"]+lay["warnings"]}
             print(json.dumps(report,ensure_ascii=False,indent=2))
             return 2 if report["errors"] else 0
-        manifest=render(hardware,read_data(args.layout),read_data(args.style),args.output,args.drawio,args.style_revision)
+        manifest=render(hardware,read_data(args.layout),read_data(args.style),args.output,args.drawio,args.style_revision,args.allow_nonorthogonal)
         print(json.dumps(manifest,ensure_ascii=False,indent=2))
         return 0 if manifest["exports_complete"] else 3
     except (DiagramError,OSError,TypeError,KeyError) as exc:

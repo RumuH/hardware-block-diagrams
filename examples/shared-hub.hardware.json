@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "title": "Shared resource with request and completion paths",
+  "view": "microarchitecture",
+  "modules": [
+    {
+      "id": "a",
+      "label": "Unit A",
+      "kind": "compute"
+    },
+    {
+      "id": "b",
+      "label": "Unit B",
+      "kind": "compute"
+    },
+    {
+      "id": "arb",
+      "label": "Request arbiter",
+      "kind": "control"
+    },
+    {
+      "id": "mem",
+      "label": "Shared memory",
+      "kind": "memory"
+    },
+    {
+      "id": "done",
+      "label": "Completion router",
+      "kind": "control"
+    }
+  ],
+  "connections": [
+    {
+      "id": "a_req",
+      "source": "a",
+      "target": "arb",
+      "kind": "control"
+    },
+    {
+      "id": "b_req",
+      "source": "b",
+      "target": "arb",
+      "kind": "control"
+    },
+    {
+      "id": "request",
+      "source": "arb",
+      "target": "mem",
+      "kind": "control"
+    },
+    {
+      "id": "read",
+      "source": "mem",
+      "target": "a",
+      "kind": "data"
+    },
+    {
+      "id": "write",
+      "source": "b",
+      "target": "mem",
+      "kind": "data"
+    },
+    {
+      "id": "complete",
+      "source": "mem",
+      "target": "done",
+      "kind": "feedback"
+    },
+    {
+      "id": "a_done",
+      "source": "done",
+      "target": "a",
+      "kind": "feedback"
+    },
+    {
+      "id": "b_done",
+      "source": "done",
+      "target": "b",
+      "kind": "feedback"
+    }
+  ]
+}
