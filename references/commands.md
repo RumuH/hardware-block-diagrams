@@ -14,6 +14,25 @@ python3 scripts/diagram.py render examples/cpu-microarchitecture.hardware.json -
 
 每次输出：`PREFIX.drawio`、`.svg`、`.png`、`.hardware.json`、`.layout.json`、`.manifest.json`。用绝对 output 前缀使 manifest 文件链接便于其他 agent 使用。重新生成前保留用户手工编辑文件，输出到新前缀。
 
+## 跨机使用预设
+
+以下内置文件不依赖个人库，Git main 拉取后即可使用：
+
+| 预设 | 适用画法 |
+| --- | --- |
+| `assets/styles/thesis-composition.json` | 白底黑框的 NPU/GPU/SoC 组成视图，宽数据通路、细控制线 |
+| `assets/styles/thesis-microarchitecture.json` | 浅色 CPU/FPGA 微架构，突出分发、并行、汇聚与反馈 |
+| `assets/styles/soc-bus.json` | 黑白总线型 SoC，显式域框、总线、引脚和发起端角色 |
+
+前两种预设的视觉参数与 2026-10-26 四图验证一致；构图规则保留拓扑条件，不要求所有图套同一布局。它们是随代码发布的预设，不是个人学习库的 revision；不带原图、私人样本 ID 或审批记录。旧的 `cpu-datapath`、`npu-hierarchy` 仍可选。
+
+```bash
+python3 scripts/diagram.py render examples/npu-composition.hardware.json --layout examples/npu-composition.layout.json --style assets/styles/thesis-composition.json --output /absolute/output/npu-thesis
+python3 scripts/diagram.py render examples/cpu-microarchitecture.hardware.json --layout examples/cpu-microarchitecture.layout.json --style assets/styles/thesis-microarchitecture.json --output /absolute/output/cpu-thesis
+```
+
+对新设计应按本次连接重新设计 layout。仅切换 style 不会移动旧框或重算走线；希望复现某张已生成图，还需要那张图的 hardware/layout 文件。个人具名风格的原始样本、批准状态和版本历史需单独迁移，不能通过空样本预设冒充已迁移的学习记录。
+
 ## 学习后的风格解析
 
 ```bash

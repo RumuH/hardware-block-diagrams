@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "name": "thesis-composition",
+  "view": "composition",
+  "tokens": {
+    "background": "#FFFFFF",
+    "border_color": "#000000",
+    "colors": {
+      "block": "#FFFFFF",
+      "compute": "#FFFFFF",
+      "container": "#FAFAFA",
+      "control": "#FFFFFF",
+      "domain": "#FFFFFF",
+      "interconnect": "#FFFFFF",
+      "memory": "#FFFFFF",
+      "peripheral": "#FFFFFF",
+      "storage": "#FFFFFF",
+      "vector": "#FFFFFF"
+    },
+    "corner_radius": 0,
+    "edge_colors": {
+      "bus": "#000000",
+      "clock": "#7F7F7F",
+      "control": "#000000",
+      "data": "#000000",
+      "feedback": "#404040"
+    },
+    "edge_font_size": 12,
+    "edge_width": 1.2,
+    "font_family": "Arial",
+    "font_size": 15,
+    "text_color": "#000000",
+    "wide_width": 5
+  },
+  "rules": [
+    "适用于重复簇、共享存储、互连或SoC组成视图；按当前连接选择阵列、共享中心或总线布局，不强制为流水链。",
+    "默认白底黑框，以宽数据箭头、细控制线和虚线反馈区分路径；图例只解释当前设计已声明的含义。",
+    "同构实例等尺寸对齐；共享资源靠近服务对象，高扇入区域预留端口和通道空间，减少无用途的外围空白。",
+    "确有分区时可用虚线域框，标题避开接口；颜色和域框不自动说明时钟、电源或硬件归属。",
+    "箭头比例与间距联合检查；短线保留箭身，发生拥挤时允许调整模块、接口和容器，而非只扩大画布。",
+    "模块、数量、端口、位宽、协议及命名由本次设计给出；预设不新增总线、引脚、M标记或任何未知硬件事实。"
+  ],
+  "sample_ids": []
+}

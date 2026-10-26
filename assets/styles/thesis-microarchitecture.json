@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "name": "thesis-microarchitecture",
+  "view": "microarchitecture",
+  "tokens": {
+    "background": "#FFFFFF",
+    "border_color": "#000000",
+    "colors": {
+      "block": "#FFFFFF",
+      "compute": "#F4B6B6",
+      "container": "#E8EFD9",
+      "control": "#D9D9D9",
+      "domain": "#F2F2F2",
+      "interconnect": "#BDD7EE",
+      "memory": "#FFFFFF",
+      "peripheral": "#FFFFFF",
+      "storage": "#A8D08D"
+    },
+    "corner_radius": 0,
+    "edge_colors": {
+      "bus": "#002060",
+      "clock": "#7F7F7F",
+      "control": "#C00000",
+      "data": "#000000",
+      "feedback": "#404040"
+    },
+    "edge_font_size": 12,
+    "edge_width": 1.2,
+    "font_family": "Arial",
+    "font_size": 15,
+    "text_color": "#000000",
+    "wide_width": 4
+  },
+  "rules": [
+    "适用于CPU执行数据通路、FPGA并行流水线等微架构视图；按共同上下游安排主链、并行支路、分发与汇聚。",
+    "采用浅色容器和功能类别色；数据通路为黑色宽箭头，接口、控制和反馈可用不同线色或线型，并按实际连接给出图例。",
+    "颜色只作当前图中的视觉类别，不推断时钟域、物理面积或确切位宽；模块类别由本次设计声明。",
+    "强关联对象邻近，同构单元对齐；给共享接口和反馈留出通道，仅在需要跨区时把反馈绕到外围。",
+    "字号、箭身和尖头保持协调；不靠缩小文字或删除信号解决拥挤，必要时重排模块和接口。",
+    "不从预设增加bank、mux、旁路、流水级、协议或容量；所有连接与包含关系保留本次hardware描述。"
+  ],
+  "sample_ids": []
+}
