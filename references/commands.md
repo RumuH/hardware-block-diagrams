@@ -110,3 +110,19 @@ python3 scripts/diagram.py render examples/soc-bus.hardware.json --layout exampl
 ```
 
 该合成设计的端口角色、引脚、域框和图例都是显式数据；例子中的容量/位宽/协议保持未指定。具体布局选择与边界见 [soc-layout.md](soc-layout.md)。
+
+## 箭头、标题与空间诊断
+
+```bash
+python3 scripts/audit_layout.py hardware.json --layout layout.json --style style.json --report /absolute/output/visual-audit.json
+```
+
+报告是辅助诊断，不能据子框面积比例自动压紧图形。标题碰线与极短箭头需要结合PNG和[视觉比例与空间组织](visual-balance.md)处理。报告路径不得覆盖任一输入。
+
+实际draw.io箭头回归（会调用Desktop，默认单元测试跳过此项）：
+
+```bash
+HARDWARE_DIAGRAM_EXPORT_TESTS=1 python3 -m unittest discover -s tests -v
+```
+
+该项从真正导出的SVG测量20/40/80/160单位单向及双向宽箭头，防止marker单位换算再次吞没箭身。

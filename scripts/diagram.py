@@ -330,6 +330,8 @@ def validate_layout(layout, hardware, semantic=None):
             errors.append(f"nodes.{mid}.text_direction: invalid value")
         if n.get("shape") == "domain" and n.get("text_direction") == "vertical":
             errors.append(f"nodes.{mid}: domain title must remain horizontal")
+        if n.get("shape") == "domain" and n.get("label_position") == "center":
+            errors.append(f"nodes.{mid}: domain border title must use top or bottom")
         if "label_side" in n and (n.get("shape") != "pin" or not _choice(n["label_side"], SIDES)):
             errors.append(f"nodes.{mid}.label_side: expected pin label side")
         if n.get("shape") == "pin" and all(_number(n.get(k)) for k in ("w", "h")) and abs(n["w"]-n["h"]) > 1e-6:
@@ -457,10 +459,12 @@ def validate_style(style):
     if not _choice(s.get("view"), {"composition", "microarchitecture"}):
         errors.append("style.view: invalid value")
     t = _mapping(s.get("tokens", {}), "style.tokens", errors)
-    _keys(t, {"background", "font_family", "font_size", "edge_font_size", "text_color", "border_color", "colors", "edge_colors", "edge_width", "wide_width", "corner_radius"}, "style.tokens", errors)
-    for key in ("font_size", "edge_font_size", "edge_width", "wide_width"):
+    _keys(t, {"background", "font_family", "font_size", "edge_font_size", "text_color", "border_color", "colors", "edge_colors", "edge_width", "wide_width", "corner_radius", "arrow_head_length", "arrow_head_width_ratio"}, "style.tokens", errors)
+    for key in ("font_size", "edge_font_size", "edge_width", "wide_width", "arrow_head_length", "arrow_head_width_ratio"):
         if key in t and (not _number(t[key]) or t[key] <= 0):
             errors.append(f"style.tokens.{key}: expected positive number")
+    if _number(t.get("arrow_head_width_ratio")) and t["arrow_head_width_ratio"] < 1:
+        errors.append("style.tokens.arrow_head_width_ratio: expected number >=1")
     if "corner_radius" in t and (not _number(t["corner_radius"]) or t["corner_radius"] < 0):
         errors.append("style.tokens.corner_radius: expected nonnegative number")
     for key in ("colors", "edge_colors"):
@@ -502,7 +506,56 @@ def edge_label(connection, modules):
     return label
 
 
-def _line_style(connection, edge, tokens):
+def edge_route(connection, edge, nodes):
+    source, target = (nodes[connection[k].split(".")[0]] for k in ("source", "target"))
+    return [anchor(_rect(source), edge["source_side"], edge.get("source_pos", .5)),
+            *[tuple(p) for p in edge.get("points", [])],
+            anchor(_rect(target), edge["target_side"], edge.get("target_pos", .5))]
+
+
+def _compact_route(route):
+    """Ignore redundant bends for end clearance, without changing the stored layout."""
+    compact = []
+    for point in route:
+        if compact and math.dist(compact[-1], point) < 1e-7:
+            continue
+        compact.append(point)
+        while len(compact) >= 3:
+            a, b, c = compact[-3:]
+            u, v = (b[0]-a[0], b[1]-a[1]), (c[0]-b[0], c[1]-b[1])
+            if abs(u[0]*v[1]-u[1]*v[0]) < 1e-7 and u[0]*v[0]+u[1]*v[1] > 0:
+                compact.pop(-2)
+            else:
+                break
+    return compact
+
+
+def arrow_dimensions(connection, edge, tokens, nodes=None, route=None):
+    """Physical model units, before draw.io flexArrow's 3x marker-size conversion."""
+    width = tokens.get("wide_width", 12)
+    preferred = tokens.get("arrow_head_length", min(tokens.get("font_size", 14)*.85, max(8, width*2)))
+    if nodes is not None and "arrow_head_length" not in tokens:
+        near = [min(nodes[connection[k].split(".")[0]][d] for d in ("w", "h")) for k in ("source", "target")]
+        preferred = min(preferred, max(8, min(near)*.28))
+    path = _compact_route(route if route is not None else edge_route(connection, edge, nodes) if nodes is not None else [(0, 0), (56, 0)])
+    first = math.dist(path[0], path[1]) if len(path) > 1 else 0
+    last = math.dist(path[-2], path[-1]) if len(path) > 1 else 0
+    return {"shaft_width": width, "head_width": width*tokens.get("arrow_head_width_ratio", 1.8),
+            "start_length": min(preferred, first*.30) if connection.get("bidirectional") else 0,
+            "end_length": min(preferred, last*.30), "first_segment": first, "last_segment": last}
+
+
+def domain_title_rect(node, label, font_size):
+    """Estimated native title rectangle in absolute model coordinates."""
+    inset = min(8, node["w"]/4)
+    width = min(node["w"]-2*inset, len(label)*font_size*.65+12)
+    align = node.get("label_align", "left")
+    x = node["w"]-inset-width if align == "right" else (node["w"]-width)/2 if align == "center" else inset
+    y = node["y"]+(node["h"] if node.get("label_position") == "bottom" else 0)-font_size*.65
+    return node["x"]+x, y, width, font_size*1.3
+
+
+def _line_style(connection, edge, tokens, nodes=None):
     """One style source for bound connections and their legend samples."""
     color = _rgb(tokens.get("edge_colors", {}).get(connection["kind"]), _rgb(tokens.get("border_color"), "#40566e"))
     wide = edge.get("wide", False)
@@ -515,9 +568,14 @@ def _line_style(connection, edge, tokens):
     if edge.get("dashed"):
         parts.extend(["dashed=1", "dashPattern=4 3"])
     if wide:
-        parts.extend(["shape=flexArrow", f"fillColor={color}", f"width={width}", f"endWidth={width*1.5:g}"])
+        dimensions = arrow_dimensions(connection, edge, tokens, nodes)
+        # flexArrow adds endWidth to the shaft; endSize is multiplied by 3 then
+        # the 1-unit outline is added. Public tokens remain physical model units.
+        extra_width = dimensions["head_width"]-width
+        parts.extend(["shape=flexArrow", f"fillColor={color}", f"width={width}", f"endWidth={extra_width:g}",
+                      f"endSize={max(0, (dimensions['end_length']-1)/3):.8g}"])
         if connection.get("bidirectional"):
-            parts.append(f"startWidth={width*1.5:g}")
+            parts.extend([f"startWidth={extra_width:g}", f"startSize={max(0, (dimensions['start_length']-1)/3):.8g}"])
     return parts
 
 
@@ -571,8 +629,8 @@ def drawio_xml(hardware, layout, style):
             # A native child title moves with its domain and masks only its local border.
             title = ET.SubElement(root, "mxCell", {"id": f"title:{mid}", "value": label, "vertex": "1", "connectable": "0", "parent": f"node:{mid}", "decorationOf": mid,
                 "style": f"text;html=0;whiteSpace=nowrap;fillColor={bg};strokeColor=none;align=left;verticalAlign=middle;spacingLeft=4;fontColor={font};fontFamily={t.get('font_family','Helvetica')};fontSize={fontsize};"})
-            inset = min(8, n["w"]/4)
-            ET.SubElement(title, "mxGeometry", {"x": str(inset), "y": str(-fontsize*.65), "width": str(min(n['w']-2*inset, len(label)*fontsize*.65+12)), "height": str(fontsize*1.3), "as": "geometry"})
+            tx, ty, tw, th = domain_title_rect(n, label, fontsize)
+            ET.SubElement(title, "mxGeometry", {"x": str(tx-n["x"]), "y": str(ty-n["y"]), "width": str(tw), "height": str(th), "as": "geometry"})
         if shape == "pin":
             for i, (a, b) in enumerate((((0, 0), (n["w"], n["h"])), ((0, n["h"]), (n["w"], 0)))):
                 cross = ET.SubElement(root, "mxCell", {"id": f"pin-cross:{mid}:{i}", "edge": "1", "parent": f"node:{mid}", "connectable": "0", "decorationOf": mid,
@@ -593,20 +651,9 @@ def drawio_xml(hardware, layout, style):
         # flexArrow is an editable native arrow edge with source and target bounds.
         sx, sy = anchor((0, 0, 1, 1), e["source_side"], e.get("source_pos", .5))
         tx, ty = anchor((0, 0, 1, 1), e["target_side"], e.get("target_pos", .5))
-        parts = _line_style(c, e, t)
+        parts = _line_style(c, e, t, layout["nodes"])
         parts.extend([f"exitX={sx}", f"exitY={sy}", f"entryX={tx}", f"entryY={ty}", "exitPerimeter=0", "entryPerimeter=0"])
         parts.extend([f"fontSize={t.get('edge_font_size', 11)}", f"fontFamily={t.get('font_family', 'Helvetica')}"])
-        if wide:
-            sn,dn=layout["nodes"][src],layout["nodes"][dst]
-            start=anchor(_rect(sn),e["source_side"],e.get("source_pos",.5))
-            end=anchor(_rect(dn),e["target_side"],e.get("target_pos",.5))
-            route=[start]+[tuple(p) for p in e.get("points",[])]+[end]
-            last_length=math.dist(route[-2],route[-1])
-            head=min(16,max(6,last_length/3))
-            parts.append(f"endSize={head:g}")
-            if c.get("bidirectional"):
-                first_length=math.dist(route[0],route[1])
-                parts.append(f"startSize={min(16,max(6,first_length/3)):g}")
         cell = ET.SubElement(root,"mxCell",{"id":f"edge:{cid}","value":edge_label(c,modules),"style":";".join(parts)+";","edge":"1","parent":"1","source":f"node:{src}","target":f"node:{dst}","hardwareId":cid,"hardwareKind":c["kind"]})
         geo = ET.SubElement(cell,"mxGeometry",{"relative":"1","as":"geometry"})
         if e.get("points"):
@@ -648,7 +695,7 @@ def drawio_xml(hardware, layout, style):
         connections = {c["id"]: c for c in hardware["connections"]}
         for i, entry in enumerate(legend["entries"]):
             c = connections[entry["connection"]]
-            line = ET.SubElement(root, "mxCell", {"id": f"legend-line:{i}", "edge": "1", "parent": "legend", "connectable": "0", "decorationOf": "legend", "style": ";".join(_line_style(c, layout["edges"][c["id"]], t))+";"})
+            line = ET.SubElement(root, "mxCell", {"id": f"legend-line:{i}", "edge": "1", "parent": "legend", "connectable": "0", "decorationOf": "legend", "style": ";".join(_line_style(c, layout["edges"][c["id"]], t, layout["nodes"]))+";"})
             geo = ET.SubElement(line, "mxGeometry", {"relative": "1", "as": "geometry"})
             for name, x in (("sourcePoint", 8), ("targetPoint", 64)):
                 ET.SubElement(geo, "mxPoint", {"x": str(x), "y": str((i+.5)*row), "as": name})
@@ -723,6 +770,7 @@ def render(hardware,layout,style,prefix,drawio=None,style_revision=None,allow_no
         else:
             export_errors.append("draw.io Desktop executable unavailable; SVG and PNG exports were requested")
         manifest={"version":1,"title":hardware["title"],"view":hardware["view"],"files":{k:str(v) for k,v in files.items()},"hardware_sha256":_hash(hardware),"style_sha256":_hash(style),"style":{"name":style["name"],"revision":style_revision if style_revision is not None else style.get("revision")},"issues":{"errors":export_errors,"warnings":sem["warnings"]+lay["warnings"]},"exports_complete":not export_errors}
+        manifest["renderer_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
         _write(stage/"hardware.json",hardware)
         _write(stage/"layout.json",layout)
         _write(stage/"manifest.json",manifest)
