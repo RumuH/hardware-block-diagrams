@@ -24,10 +24,10 @@ ID = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
 SIDES = {"left", "right", "top", "bottom"}
 KINDS = {"data", "control", "bus", "feedback", "clock", "reset"}
 MODULE_KEYS = {"id", "label", "parent", "kind", "count", "shared_with", "ports", "clock_domain", "description", "metadata"}
-PORT_KEYS = {"id", "direction", "width", "protocol", "metadata"}
+PORT_KEYS = {"id", "direction", "width", "protocol", "role", "metadata"}
 CONNECTION_KEYS = {"id", "source", "target", "kind", "label", "width", "protocol", "bidirectional", "metadata"}
-LAYOUT_NODE_KEYS = {"x", "y", "w", "h", "label_position", "label_align"}
-LAYOUT_EDGE_KEYS = {"source_side", "target_side", "source_pos", "target_pos", "points", "label_at", "wide"}
+LAYOUT_NODE_KEYS = {"x", "y", "w", "h", "label_position", "label_align", "shape", "dashed", "text_direction", "label_side", "font_size", "stroke_width"}
+LAYOUT_EDGE_KEYS = {"source_side", "target_side", "source_pos", "target_pos", "points", "label_at", "wide", "arrow", "dashed"}
 
 
 class DiagramError(Exception):
@@ -168,6 +168,8 @@ def validate_hardware(hardware):
                 seen_ports.add(pid)
             if not _choice(p.get("direction"), {"in", "out", "inout"}):
                 errors.append(f"{pw}.direction: expected in, out, or inout")
+            if "role" in p and not _choice(p["role"], {"initiator", "target"}):
+                errors.append(f"{pw}.role: expected initiator or target")
             if "width" in p and not _positive_int(p["width"]):
                 errors.append(f"{pw}.width: expected positive integer")
             if "protocol" in p and not isinstance(p["protocol"], str):
@@ -285,7 +287,7 @@ def validate_layout(layout, hardware, semantic=None):
     semantic = semantic or validate_hardware(hardware)
     errors, warnings = [], []
     l = _mapping(layout, "layout", errors)
-    _keys(l, {"version", "canvas", "nodes", "edges"}, "layout", errors)
+    _keys(l, {"version", "canvas", "nodes", "edges", "legend"}, "layout", errors)
     if l.get("version") != 1:
         errors.append("layout.version: expected 1")
     canvas = _mapping(l.get("canvas"), "layout.canvas", errors)
@@ -320,6 +322,21 @@ def validate_layout(layout, hardware, semantic=None):
             errors.append(f"nodes.{mid}.label_position: invalid value")
         if not _choice(n.get("label_align", "center"), {"left", "center", "right"}):
             errors.append(f"nodes.{mid}.label_align: invalid value")
+        if not _choice(n.get("shape", "block"), {"block", "domain", "bus", "pin"}):
+            errors.append(f"nodes.{mid}.shape: expected block, domain, bus, or pin")
+        if "dashed" in n and not isinstance(n["dashed"], bool):
+            errors.append(f"nodes.{mid}.dashed: expected boolean")
+        if "text_direction" in n and not _choice(n["text_direction"], {"horizontal", "vertical"}):
+            errors.append(f"nodes.{mid}.text_direction: invalid value")
+        if n.get("shape") == "domain" and n.get("text_direction") == "vertical":
+            errors.append(f"nodes.{mid}: domain title must remain horizontal")
+        if "label_side" in n and (n.get("shape") != "pin" or not _choice(n["label_side"], SIDES)):
+            errors.append(f"nodes.{mid}.label_side: expected pin label side")
+        if n.get("shape") == "pin" and all(_number(n.get(k)) for k in ("w", "h")) and abs(n["w"]-n["h"]) > 1e-6:
+            errors.append(f"nodes.{mid}: pin shape requires square geometry")
+        for field in ("font_size", "stroke_width"):
+            if field in n and (not _number(n[field]) or n[field] <= 0):
+                errors.append(f"nodes.{mid}.{field}: expected positive number")
     for mid, m in modules.items():
         p = m.get("parent")
         if isinstance(p,str) and p in valid_nodes and mid in valid_nodes:
@@ -328,7 +345,10 @@ def validate_layout(layout, hardware, semantic=None):
                 errors.append(f"nodes.{mid}: outside parent {p}")
         if mid in valid_nodes:
             label = str(m.get("label", "")) + (f" ×{m['count']}" if _positive_int(m.get("count")) and m["count"] > 1 else "")
-            if len(label)*7 > valid_nodes[mid]["w"] - 12 or valid_nodes[mid]["h"] < 24:
+            n = valid_nodes[mid]
+            vertical = n.get("text_direction", "vertical" if n.get("shape") == "bus" else "horizontal") == "vertical"
+            label_width, label_height = (n["h"], n["w"]) if vertical else (n["w"], n["h"])
+            if n.get("shape") != "pin" and (max(map(len, label.splitlines() or [""]))*7 > label_width - 12 or label_height < 24):
                 warnings.append(f"nodes.{mid}: label may not fit")
     names = list(valid_nodes.keys() & modules.keys())
     for i, a in enumerate(names):
@@ -352,6 +372,12 @@ def validate_layout(layout, hardware, semantic=None):
             errors.append(f"edges.{cid}.label_at: expected [x,y]")
         if "wide" in e and not isinstance(e["wide"], bool):
             errors.append(f"edges.{cid}.wide: expected boolean")
+        if "arrow" in e and not _choice(e["arrow"], {"normal", "none"}):
+            errors.append(f"edges.{cid}.arrow: expected normal or none")
+        if "dashed" in e and not isinstance(e["dashed"], bool):
+            errors.append(f"edges.{cid}.dashed: expected boolean")
+        if e.get("arrow") == "none" and e.get("wide") is True:
+            errors.append(f"edges.{cid}: arrow=none is incompatible with wide arrow")
         if cid in connections and all(_choice(e.get(f), SIDES) for f in ("source_side", "target_side")):
             c = connections[cid]
             src, dst = str(c.get("source", "")).split(".")[0], str(c.get("target", "")).split(".")[0]
@@ -388,6 +414,35 @@ def validate_layout(layout, hardware, semantic=None):
                         if any(_segment_hits_rect(x,y,_rect(valid_nodes[mid])) for x,y in zip(path,path[1:])):
                             warnings.append(f"edges.{cid}: crosses unrelated module {mid}")
                 valid_edges[cid] = e
+    if "legend" in l:
+        legend = _mapping(l["legend"], "layout.legend", errors)
+        _keys(legend, {"x", "y", "w", "row_height", "entries"}, "layout.legend", errors)
+        for field in ("x", "y", "w"):
+            if not _number(legend.get(field)) or (field == "w" and legend[field] <= 0):
+                errors.append(f"layout.legend.{field}: expected finite geometry")
+        row = legend.get("row_height", 28)
+        if not _number(row) or row < 24:
+            errors.append("layout.legend.row_height: expected number >=24")
+        entries = legend.get("entries")
+        if not isinstance(entries, list) or not entries:
+            errors.append("layout.legend.entries: expected nonempty array")
+            entries = []
+        for i, raw in enumerate(entries):
+            entry = _mapping(raw, f"legend.entries[{i}]", errors)
+            _keys(entry, {"connection", "label"}, f"legend.entries[{i}]", errors)
+            if not isinstance(entry.get("connection"), str) or entry["connection"] not in connections:
+                errors.append(f"legend.entries[{i}].connection: unknown connection")
+            if not isinstance(entry.get("label"), str) or not entry["label"].strip():
+                errors.append(f"legend.entries[{i}].label: expected nonempty string")
+        if all(_number(legend.get(k)) for k in ("x", "y", "w")) and _number(row) and all(_number(canvas.get(k)) for k in ("width", "height")):
+            box = (legend["x"], legend["y"], legend["x"]+legend["w"], legend["y"]+row*len(entries))
+            if box[0] < 0 or box[1] < 0 or box[2] > canvas["width"] or box[3] > canvas["height"]:
+                errors.append("layout.legend: outside canvas")
+            for mid, node in valid_nodes.items():
+                if any(m.get("parent") == mid for m in modules.values()):
+                    continue
+                if _intersection(box, _rect(node)):
+                    warnings.append(f"layout.legend: overlaps module {mid}")
     return {"errors": errors, "warnings": warnings, "nodes": valid_nodes, "edges": valid_edges}
 
 
@@ -447,6 +502,25 @@ def edge_label(connection, modules):
     return label
 
 
+def _line_style(connection, edge, tokens):
+    """One style source for bound connections and their legend samples."""
+    color = _rgb(tokens.get("edge_colors", {}).get(connection["kind"]), _rgb(tokens.get("border_color"), "#40566e"))
+    wide = edge.get("wide", False)
+    width = tokens.get("wide_width", 12) if wide else tokens.get("edge_width", 2)
+    arrow = edge.get("arrow", "normal") != "none"
+    parts = ["html=0", "rounded=0", "edgeStyle=none", f"strokeColor={color}",
+             f"strokeWidth={1 if wide else width}", f"endArrow={'block' if arrow else 'none'}", "endFill=1"]
+    if connection.get("bidirectional") and arrow:
+        parts.extend(["startArrow=block", "startFill=1"])
+    if edge.get("dashed"):
+        parts.extend(["dashed=1", "dashPattern=4 3"])
+    if wide:
+        parts.extend(["shape=flexArrow", f"fillColor={color}", f"width={width}", f"endWidth={width*1.5:g}"])
+        if connection.get("bidirectional"):
+            parts.append(f"startWidth={width*1.5:g}")
+    return parts
+
+
 def drawio_xml(hardware, layout, style):
     modules = {m["id"]:m for m in hardware["modules"]}
     t = style.get("tokens", {})
@@ -468,14 +542,44 @@ def drawio_xml(hardware, layout, style):
         stroke = _rgb(t.get("border_color"), "#40566e")
         font = _rgb(t.get("text_color"), "#172536")
         label = m["label"] + (f" ×{m['count']}" if m.get("count",1)>1 else "")
+        shape = n.get("shape", "block")
+        fontsize = n.get("font_size", t.get("font_size", 14))
         radius=t.get("corner_radius",0)
-        style_items = [f"rounded={1 if radius else 0}","whiteSpace=wrap","html=0","container=1","collapsible=0",f"fillColor={fill}",f"strokeColor={stroke}",f"fontColor={font}",f"fontSize={t.get('font_size',14)}",f"fontFamily={t.get('font_family','Helvetica')}",f"align={n.get('label_align','center')}","spacingLeft=12","spacingRight=12"]
+        style_items = [f"rounded={1 if radius else 0}","whiteSpace=wrap","html=0","container=1","collapsible=0",f"fillColor={fill}",f"strokeColor={stroke}",f"fontColor={font}",f"fontSize={fontsize}",f"fontFamily={t.get('font_family','Helvetica')}",f"align={n.get('label_align','center')}","spacingLeft=12","spacingRight=12"]
+        if "stroke_width" in n:
+            style_items.append(f"strokeWidth={n['stroke_width']}")
+        if n.get("dashed", shape == "domain"):
+            style_items.extend(["dashed=1", "dashPattern=4 3"])
+        if shape == "domain":
+            style_items.extend(["rounded=0", "fillColor=none"])
+        vertical = n.get("text_direction", "vertical" if shape == "bus" else "horizontal") == "vertical"
+        if vertical:
+            style_items.extend(["horizontal=0", "whiteSpace=nowrap", "spacing=2", "spacingLeft=2", "spacingRight=2"])
+        if shape == "pin":
+            side = n.get("label_side", "right")
+            style_items.extend(["rounded=0", "fillColor=#ffffff", "whiteSpace=nowrap", "spacing=5", "spacingLeft=5", "spacingRight=5",
+                                f"labelPosition={side if side in {'left','right'} else 'center'}",
+                                f"verticalLabelPosition={side if side in {'top','bottom'} else 'middle'}",
+                                f"align={'right' if side=='left' else 'left' if side=='right' else 'center'}"])
         if radius:
             style_items.extend(["absoluteArcSize=1",f"arcSize={radius*2}"])
         pos = n.get("label_position", "top" if any(child.get("parent") == mid for child in modules.values()) else "center")
         style_items.append(f"verticalAlign={('middle' if pos=='center' else pos)}")
-        cell = ET.SubElement(root,"mxCell",{"id":f"node:{mid}","value":label,"style":";".join(style_items)+";","vertex":"1","parent":f"node:{parent}" if parent else "1","hardwareId":mid,"hardwareKind":str(m.get("kind",""))})
+        cell = ET.SubElement(root,"mxCell",{"id":f"node:{mid}","value":"" if shape == "domain" else label,"style":";".join(style_items)+";","vertex":"1","parent":f"node:{parent}" if parent else "1","hardwareId":mid,"hardwareKind":str(m.get("kind",""))})
         ET.SubElement(cell,"mxGeometry",{"x":str(x),"y":str(y),"width":str(n["w"]),"height":str(n["h"]),"as":"geometry"})
+        if shape == "domain":
+            # A native child title moves with its domain and masks only its local border.
+            title = ET.SubElement(root, "mxCell", {"id": f"title:{mid}", "value": label, "vertex": "1", "connectable": "0", "parent": f"node:{mid}", "decorationOf": mid,
+                "style": f"text;html=0;whiteSpace=nowrap;fillColor={bg};strokeColor=none;align=left;verticalAlign=middle;spacingLeft=4;fontColor={font};fontFamily={t.get('font_family','Helvetica')};fontSize={fontsize};"})
+            inset = min(8, n["w"]/4)
+            ET.SubElement(title, "mxGeometry", {"x": str(inset), "y": str(-fontsize*.65), "width": str(min(n['w']-2*inset, len(label)*fontsize*.65+12)), "height": str(fontsize*1.3), "as": "geometry"})
+        if shape == "pin":
+            for i, (a, b) in enumerate((((0, 0), (n["w"], n["h"])), ((0, n["h"]), (n["w"], 0)))):
+                cross = ET.SubElement(root, "mxCell", {"id": f"pin-cross:{mid}:{i}", "edge": "1", "parent": f"node:{mid}", "connectable": "0", "decorationOf": mid,
+                    "style": f"edgeStyle=none;endArrow=none;startArrow=none;strokeColor={stroke};strokeWidth=1;"})
+                geo = ET.SubElement(cross, "mxGeometry", {"relative": "1", "as": "geometry"})
+                for name, point in (("sourcePoint", a), ("targetPoint", b)):
+                    ET.SubElement(geo, "mxPoint", {"x": str(point[0]), "y": str(point[1]), "as": name})
         added.add(f"node:{mid}")
     added = set()
     for mid in modules:
@@ -484,18 +588,14 @@ def drawio_xml(hardware, layout, style):
         cid = c["id"]
         e = layout["edges"][cid]
         src,dst = c["source"].split(".")[0],c["target"].split(".")[0]
-        color = _rgb(t.get("edge_colors",{}).get(c["kind"]),"#40566e")
+        color = _rgb(t.get("edge_colors",{}).get(c["kind"]), _rgb(t.get("border_color"), "#40566e"))
         wide = e.get("wide",False)
-        width = t.get("wide_width",12) if wide else t.get("edge_width",2)
         # flexArrow is an editable native arrow edge with source and target bounds.
-        parts = ["html=0", "rounded=0", "endArrow=block", "endFill=1", f"strokeColor={color}",f"strokeWidth={1 if wide else width}","edgeStyle=none",f"exitX={1 if e['source_side']=='right' else 0 if e['source_side']=='left' else e.get('source_pos',.5)}",f"exitY={1 if e['source_side']=='bottom' else 0 if e['source_side']=='top' else e.get('source_pos',.5)}",f"entryX={1 if e['target_side']=='right' else 0 if e['target_side']=='left' else e.get('target_pos',.5)}",f"entryY={1 if e['target_side']=='bottom' else 0 if e['target_side']=='top' else e.get('target_pos',.5)}","exitPerimeter=0","entryPerimeter=0"]
-        if e["source_side"] in {"top","bottom"}:
-            parts[7] = f"exitX={e.get('source_pos',.5)}"
-        if e["target_side"] in {"top","bottom"}:
-            parts[9] = f"entryX={e.get('target_pos',.5)}"
+        sx, sy = anchor((0, 0, 1, 1), e["source_side"], e.get("source_pos", .5))
+        tx, ty = anchor((0, 0, 1, 1), e["target_side"], e.get("target_pos", .5))
+        parts = _line_style(c, e, t)
+        parts.extend([f"exitX={sx}", f"exitY={sy}", f"entryX={tx}", f"entryY={ty}", "exitPerimeter=0", "entryPerimeter=0"])
         parts.extend([f"fontSize={t.get('edge_font_size', 11)}", f"fontFamily={t.get('font_family', 'Helvetica')}"])
-        if c.get("bidirectional"):
-            parts.extend(["startArrow=block","startFill=1"])
         if wide:
             sn,dn=layout["nodes"][src],layout["nodes"][dst]
             start=anchor(_rect(sn),e["source_side"],e.get("source_pos",.5))
@@ -503,10 +603,10 @@ def drawio_xml(hardware, layout, style):
             route=[start]+[tuple(p) for p in e.get("points",[])]+[end]
             last_length=math.dist(route[-2],route[-1])
             head=min(16,max(6,last_length/3))
-            parts.extend(["shape=flexArrow",f"fillColor={color}",f"width={width}",f"endWidth={width*1.5:g}",f"endSize={head:g}"])
+            parts.append(f"endSize={head:g}")
             if c.get("bidirectional"):
                 first_length=math.dist(route[0],route[1])
-                parts.extend([f"startWidth={width*1.5:g}",f"startSize={min(16,max(6,first_length/3)):g}"])
+                parts.append(f"startSize={min(16,max(6,first_length/3)):g}")
         cell = ET.SubElement(root,"mxCell",{"id":f"edge:{cid}","value":edge_label(c,modules),"style":";".join(parts)+";","edge":"1","parent":"1","source":f"node:{src}","target":f"node:{dst}","hardwareId":cid,"hardwareKind":c["kind"]})
         geo = ET.SubElement(cell,"mxGeometry",{"relative":"1","as":"geometry"})
         if e.get("points"):
@@ -528,6 +628,33 @@ def drawio_xml(hardware, layout, style):
                     break
                 halfway-=length
             ET.SubElement(geo,"mxPoint",{"x":str(e["label_at"][0]-midpoint[0]),"y":str(e["label_at"][1]-midpoint[1]),"as":"offset"})
+        # Port role is a declared hardware fact; direction or visual bus shape never implies it.
+        if c["kind"] == "bus":
+            for endpoint, side, position in ((c["source"], e["source_side"], -1), (c["target"], e["target_side"], 1)):
+                parts_ep = endpoint.split(".")
+                port = next((p for p in modules[parts_ep[0]].get("ports", []) if len(parts_ep)==2 and p["id"]==parts_ep[1]), {})
+                if port.get("role") != "initiator":
+                    continue
+                marker = ET.SubElement(root, "mxCell", {"id": f"master:{cid}:{position}", "value": "M", "vertex": "1", "connectable": "0", "parent": f"edge:{cid}", "decorationOf": cid,
+                    "style": f"rounded=0;html=0;fillColor=#ffffff;strokeColor={color};fontColor={color};fontFamily={t.get('font_family','Helvetica')};fontSize=11;align=center;verticalAlign=middle;spacing=0;"})
+                mg = ET.SubElement(marker, "mxGeometry", {"x": str(position), "y": "0", "width": "14", "height": "14", "relative": "1", "as": "geometry"})
+                dx, dy = {"left": (-7, 0), "right": (7, 0), "top": (0, -7), "bottom": (0, 7)}[side]
+                ET.SubElement(mg, "mxPoint", {"x": str(dx-7), "y": str(dy-7), "as": "offset"})
+    if "legend" in layout:
+        legend = layout["legend"]
+        row = legend.get("row_height", 28)
+        box = ET.SubElement(root, "mxCell", {"id": "legend", "value": "", "vertex": "1", "connectable": "0", "parent": "1", "decorationOf": "legend", "style": f"fillColor={bg};strokeColor=none;"})
+        ET.SubElement(box, "mxGeometry", {"x": str(legend["x"]), "y": str(legend["y"]), "width": str(legend["w"]), "height": str(row*len(legend["entries"])), "as": "geometry"})
+        connections = {c["id"]: c for c in hardware["connections"]}
+        for i, entry in enumerate(legend["entries"]):
+            c = connections[entry["connection"]]
+            line = ET.SubElement(root, "mxCell", {"id": f"legend-line:{i}", "edge": "1", "parent": "legend", "connectable": "0", "decorationOf": "legend", "style": ";".join(_line_style(c, layout["edges"][c["id"]], t))+";"})
+            geo = ET.SubElement(line, "mxGeometry", {"relative": "1", "as": "geometry"})
+            for name, x in (("sourcePoint", 8), ("targetPoint", 64)):
+                ET.SubElement(geo, "mxPoint", {"x": str(x), "y": str((i+.5)*row), "as": name})
+            text = ET.SubElement(root, "mxCell", {"id": f"legend-label:{i}", "value": entry["label"], "vertex": "1", "parent": "legend", "connectable": "0", "decorationOf": "legend",
+                "style": f"text;html=0;fillColor=none;strokeColor=none;align=left;verticalAlign=middle;fontSize={t.get('edge_font_size',11)};fontFamily={t.get('font_family','Helvetica')};fontColor={t.get('text_color','#172536')};"})
+            ET.SubElement(text, "mxGeometry", {"x": "78", "y": str(i*row), "width": str(max(1, legend["w"]-78)), "height": str(row), "as": "geometry"})
     return ET.tostring(mxfile,encoding="utf-8",xml_declaration=True)
 
 

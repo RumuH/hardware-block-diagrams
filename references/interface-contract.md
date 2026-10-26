@@ -15,3 +15,17 @@ Style library CLI is independent: scripts/library.py uses stdlib, root defaults 
 布局节点另可指定 `label_align: left|center|right`（默认 center），用于避开进入容器上沿的连线；例如容器标题使用 top + left。
 
 可选 `tokens.edge_font_size` 设置连线文字字号（正数，默认 11）；与模块 `font_size` 独立。适用于大画布上连线标签太小的情况，无需导出后再改 XML。
+
+## SoC presentation additions (compatible with v1)
+
+These fields are optional. Existing hardware/layout files retain their behavior.
+
+- Hardware port `role: initiator|target` declares a bus access role, independently of `direction`. It never creates connections or changes their direction. For bus connections, an explicitly declared initiator gets an editable `M` marker at its endpoint. No role is inferred from placement, bidirectionality or line width.
+- Layout node `shape: block|domain|bus|pin` defaults to `block`. `domain` is a transparent dashed frame with a bound title masking its own upper border; the hardware description must already define the real grouping. It does not assert a clock/power domain. `bus` is a rectangle with vertical text by default. `pin` is a square with editable diagonal children and an external label.
+- Node `dashed: boolean` overrides the default frame stroke. `text_direction: horizontal|vertical` selects label orientation (use horizontal for a horizontal bus); domain border titles remain horizontal. `label_side: left|right|top|bottom` applies to square pins. `font_size` and `stroke_width` are positive numbers for a node's visual hierarchy.
+- Edge `arrow: normal|none` defaults to `normal`. `none` suppresses both arrowheads while preserving the declared source, target and bidirectionality; use it for explicitly identified bus attachments, not to hide direction on ordinary signals. It cannot combine with `wide:true`. Edge `dashed:boolean` selects a dashed line without altering hardware meaning.
+- Optional layout `legend:{x,y,w,row_height?:number>=24,entries:[{connection:ID,label:string}]}` adds editable annotations. A legend sample derives color, width, dash and arrows from the actual referenced connection; its label describes only meanings declared by the current design. It adds no hardware nodes or connections. Place it in reserved space and inspect its actual text and line spacing.
+
+Domain titles, pin diagonals, initiator markers and legend cells are native editable decorations; markers are children of their bound edge, and pin/title children move with their module. Import retains all cells and the original hardware/layout snapshots. Manual edits still require comparison with those snapshots before regenerating.
+
+Label-fit checks remain estimates; external pin labels and annotations are not a substitute for actual PNG review. The layout comparison tool measures bound connections, not decoration strokes or text bounds.

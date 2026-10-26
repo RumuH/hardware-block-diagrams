@@ -102,3 +102,11 @@ python3 scripts/diagram.py render /absolute/work/hardware.json --layout /absolut
 `examples/routing-alignment.*.json` 展示两条上沿连接的居中等距和外侧反馈，可使用 `assets/styles/cpu-datapath.json` 渲染。连线完整规则见 [routing.md](routing.md)。
 
 连线文字过小时可在风格 tokens 中设置 `edge_font_size`，无需像旧项目那样导出后手工修改 XML；字号变化后仍需检查标签重叠。
+
+## 总线型 SoC 示例
+
+```bash
+python3 scripts/diagram.py render examples/soc-bus.hardware.json --layout examples/soc-bus.layout.json --style assets/styles/soc-bus.json --output /absolute/output/soc
+```
+
+该合成设计的端口角色、引脚、域框和图例都是显式数据；例子中的容量/位宽/协议保持未指定。具体布局选择与边界见 [soc-layout.md](soc-layout.md)。

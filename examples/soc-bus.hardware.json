@@ -1,0 +1,354 @@
+{
+  "version": 1,
+  "title": "Sensor processing SoC - synthetic transfer test",
+  "view": "composition",
+  "modules": [
+    {
+      "id": "soc",
+      "label": "Sensor Processing SoC  |  Synthetic Design",
+      "kind": "container"
+    },
+    {
+      "id": "compute",
+      "label": "Compute subsystem",
+      "kind": "domain",
+      "parent": "soc"
+    },
+    {
+      "id": "memory",
+      "label": "Shared memory",
+      "kind": "domain",
+      "parent": "soc"
+    },
+    {
+      "id": "peripherals",
+      "label": "Peripheral subsystem",
+      "kind": "domain",
+      "parent": "soc"
+    },
+    {
+      "id": "always_on",
+      "label": "Always-on subsystem",
+      "kind": "domain",
+      "parent": "soc"
+    },
+    {
+      "id": "cpu",
+      "label": "Control CPU",
+      "kind": "compute",
+      "parent": "compute",
+      "ports": [
+        {
+          "id": "cpu_bus_s",
+          "direction": "inout",
+          "role": "initiator"
+        },
+        {
+          "id": "debug_t",
+          "direction": "inout"
+        },
+        {
+          "id": "timer_irq_t",
+          "direction": "in"
+        }
+      ]
+    },
+    {
+      "id": "dma",
+      "label": "Streaming DMA",
+      "kind": "compute",
+      "parent": "compute",
+      "ports": [
+        {
+          "id": "dma_bus_s",
+          "direction": "inout",
+          "role": "initiator"
+        }
+      ]
+    },
+    {
+      "id": "bus",
+      "label": "System Bus",
+      "kind": "interconnect",
+      "parent": "compute",
+      "ports": [
+        {
+          "id": "cpu_bus_t",
+          "direction": "inout"
+        },
+        {
+          "id": "dma_bus_t",
+          "direction": "inout"
+        },
+        {
+          "id": "sram_bus_s",
+          "direction": "inout"
+        },
+        {
+          "id": "bridge_bus_s",
+          "direction": "inout"
+        }
+      ]
+    },
+    {
+      "id": "sram",
+      "label": "Shared SRAM",
+      "kind": "memory",
+      "parent": "memory",
+      "ports": [
+        {
+          "id": "sram_bus_t",
+          "direction": "inout"
+        }
+      ]
+    },
+    {
+      "id": "bridge",
+      "label": "Peripheral bridge",
+      "kind": "interconnect",
+      "parent": "peripherals",
+      "ports": [
+        {
+          "id": "bridge_bus_t",
+          "direction": "inout"
+        },
+        {
+          "id": "bridge_pbus_s",
+          "direction": "inout",
+          "role": "initiator"
+        }
+      ]
+    },
+    {
+      "id": "pbus",
+      "label": "Peripheral Bus",
+      "kind": "interconnect",
+      "parent": "peripherals",
+      "ports": [
+        {
+          "id": "bridge_pbus_t",
+          "direction": "inout"
+        },
+        {
+          "id": "uart_bus_s",
+          "direction": "inout"
+        },
+        {
+          "id": "gpio_bus_s",
+          "direction": "inout"
+        }
+      ]
+    },
+    {
+      "id": "uart",
+      "label": "UART",
+      "kind": "peripheral",
+      "parent": "peripherals",
+      "ports": [
+        {
+          "id": "uart_bus_t",
+          "direction": "inout"
+        },
+        {
+          "id": "uart_io_s",
+          "direction": "inout"
+        }
+      ]
+    },
+    {
+      "id": "gpio",
+      "label": "GPIO",
+      "kind": "peripheral",
+      "parent": "peripherals",
+      "ports": [
+        {
+          "id": "gpio_bus_t",
+          "direction": "inout"
+        },
+        {
+          "id": "gpio_io_s",
+          "direction": "inout"
+        }
+      ]
+    },
+    {
+      "id": "rtc",
+      "label": "Real-time timer",
+      "kind": "control",
+      "parent": "always_on",
+      "ports": [
+        {
+          "id": "timer_irq_s",
+          "direction": "out"
+        },
+        {
+          "id": "clock_input_t",
+          "direction": "in"
+        }
+      ]
+    },
+    {
+      "id": "reset",
+      "label": "Reset controller",
+      "kind": "control",
+      "parent": "always_on",
+      "ports": [
+        {
+          "id": "reset_input_t",
+          "direction": "in"
+        }
+      ]
+    },
+    {
+      "id": "jtag",
+      "label": "JTAG",
+      "kind": "interface",
+      "parent": "soc",
+      "ports": [
+        {
+          "id": "debug_s",
+          "direction": "inout"
+        }
+      ]
+    },
+    {
+      "id": "uart_pin",
+      "label": "uart_io",
+      "kind": "interface",
+      "parent": "soc",
+      "ports": [
+        {
+          "id": "uart_io_t",
+          "direction": "inout"
+        }
+      ]
+    },
+    {
+      "id": "gpio_pin",
+      "label": "gpio_io",
+      "kind": "interface",
+      "parent": "soc",
+      "ports": [
+        {
+          "id": "gpio_io_t",
+          "direction": "inout"
+        }
+      ]
+    },
+    {
+      "id": "reset_pin",
+      "label": "reset_n",
+      "kind": "interface",
+      "parent": "soc",
+      "ports": [
+        {
+          "id": "reset_input_s",
+          "direction": "out"
+        }
+      ]
+    },
+    {
+      "id": "clock_pin",
+      "label": "clk_32k",
+      "kind": "interface",
+      "parent": "soc",
+      "ports": [
+        {
+          "id": "clock_input_s",
+          "direction": "out"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "cpu_bus",
+      "source": "cpu.cpu_bus_s",
+      "target": "bus.cpu_bus_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "dma_bus",
+      "source": "dma.dma_bus_s",
+      "target": "bus.dma_bus_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "sram_bus",
+      "source": "bus.sram_bus_s",
+      "target": "sram.sram_bus_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "bridge_bus",
+      "source": "bus.bridge_bus_s",
+      "target": "bridge.bridge_bus_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "bridge_pbus",
+      "source": "bridge.bridge_pbus_s",
+      "target": "pbus.bridge_pbus_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "uart_bus",
+      "source": "pbus.uart_bus_s",
+      "target": "uart.uart_bus_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "gpio_bus",
+      "source": "pbus.gpio_bus_s",
+      "target": "gpio.gpio_bus_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "uart_io",
+      "source": "uart.uart_io_s",
+      "target": "uart_pin.uart_io_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "gpio_io",
+      "source": "gpio.gpio_io_s",
+      "target": "gpio_pin.gpio_io_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "debug",
+      "source": "jtag.debug_s",
+      "target": "cpu.debug_t",
+      "kind": "bus",
+      "bidirectional": true
+    },
+    {
+      "id": "timer_irq",
+      "source": "rtc.timer_irq_s",
+      "target": "cpu.timer_irq_t",
+      "kind": "feedback",
+      "label": "timer IRQ"
+    },
+    {
+      "id": "reset_input",
+      "source": "reset_pin.reset_input_s",
+      "target": "reset.reset_input_t",
+      "kind": "reset"
+    },
+    {
+      "id": "clock_input",
+      "source": "clock_pin.clock_input_s",
+      "target": "rtc.clock_input_t",
+      "kind": "clock"
+    }
+  ]
+}

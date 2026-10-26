@@ -10,6 +10,7 @@ description: 绘制、修改 CPU 微架构和 FPGA/GPU/NPU/SoC 硬件框图，�
 ## 选择工作路线
 
 - **画新图**：读 [硬件构图](references/hardware-grammar.md)、[输入与布局](references/interface-contract.md) 和 [命令](references/commands.md)。先检查本地风格，必要时按下面的联网审批流程补样本。
+  总线型 SoC 涉及域框、总线条、主设备、引脚或图例时，再读 [SoC 表达与布局](references/soc-layout.md)。
 - **修改原图**：优先取得 `.drawio` 与硬件描述。导入后比较原始语义与编辑对象，不丢弃用户新增的图元。图像输入先视觉分析；不从模糊文字猜测端口或位宽。
 - **学习／追加样本／收到用户改图**：读 [学习与更新](references/learning.md)。可以读 PNG/JPEG/SVG；PDF 先渲染相关页查看。用户原图、网络候选和生成结果有不同的入库规则。
 - **选择或回退风格**：使用 library 命令；程序目录与用户风格库存储分离。不要在正常绘图时修改执行代码。

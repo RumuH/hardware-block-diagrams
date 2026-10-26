@@ -1,0 +1,296 @@
+{
+  "version": 1,
+  "canvas": {
+    "width": 1450,
+    "height": 870
+  },
+  "nodes": {
+    "soc": {
+      "x": 80,
+      "y": 40,
+      "w": 1160,
+      "h": 700,
+      "font_size": 21,
+      "stroke_width": 1.5
+    },
+    "compute": {
+      "x": 120,
+      "y": 110,
+      "w": 500,
+      "h": 460,
+      "shape": "domain",
+      "font_size": 17
+    },
+    "memory": {
+      "x": 660,
+      "y": 110,
+      "w": 250,
+      "h": 150,
+      "shape": "domain",
+      "font_size": 17
+    },
+    "peripherals": {
+      "x": 660,
+      "y": 315,
+      "w": 530,
+      "h": 255,
+      "shape": "domain",
+      "font_size": 17
+    },
+    "always_on": {
+      "x": 120,
+      "y": 620,
+      "w": 790,
+      "h": 85,
+      "shape": "domain",
+      "font_size": 17
+    },
+    "cpu": {
+      "x": 155,
+      "y": 295,
+      "w": 230,
+      "h": 70
+    },
+    "dma": {
+      "x": 155,
+      "y": 165,
+      "w": 230,
+      "h": 70
+    },
+    "bus": {
+      "x": 480,
+      "y": 145,
+      "w": 34,
+      "h": 350,
+      "shape": "bus"
+    },
+    "sram": {
+      "x": 690,
+      "y": 165,
+      "w": 190,
+      "h": 70
+    },
+    "bridge": {
+      "x": 690,
+      "y": 355,
+      "w": 140,
+      "h": 55
+    },
+    "pbus": {
+      "x": 860,
+      "y": 350,
+      "w": 30,
+      "h": 170,
+      "shape": "bus"
+    },
+    "uart": {
+      "x": 945,
+      "y": 350,
+      "w": 180,
+      "h": 50
+    },
+    "gpio": {
+      "x": 945,
+      "y": 465,
+      "w": 180,
+      "h": 50
+    },
+    "rtc": {
+      "x": 155,
+      "y": 645,
+      "w": 180,
+      "h": 40
+    },
+    "reset": {
+      "x": 480,
+      "y": 645,
+      "w": 180,
+      "h": 40
+    },
+    "jtag": {
+      "x": 80,
+      "y": 150,
+      "w": 14,
+      "h": 14,
+      "shape": "pin",
+      "label_side": "left"
+    },
+    "uart_pin": {
+      "x": 1226,
+      "y": 368,
+      "w": 14,
+      "h": 14,
+      "shape": "pin",
+      "label_side": "right"
+    },
+    "gpio_pin": {
+      "x": 1226,
+      "y": 483,
+      "w": 14,
+      "h": 14,
+      "shape": "pin",
+      "label_side": "right"
+    },
+    "reset_pin": {
+      "x": 563,
+      "y": 726,
+      "w": 14,
+      "h": 14,
+      "shape": "pin",
+      "label_side": "bottom"
+    },
+    "clock_pin": {
+      "x": 238,
+      "y": 726,
+      "w": 14,
+      "h": 14,
+      "shape": "pin",
+      "label_side": "bottom"
+    }
+  },
+  "edges": {
+    "cpu_bus": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.5285714285714286,
+      "points": [],
+      "arrow": "none"
+    },
+    "dma_bus": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.15714285714285714,
+      "points": [],
+      "arrow": "none"
+    },
+    "sram_bus": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.15714285714285714,
+      "target_pos": 0.5,
+      "points": [],
+      "arrow": "none"
+    },
+    "bridge_bus": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.6785714285714286,
+      "target_pos": 0.5,
+      "points": [],
+      "arrow": "none"
+    },
+    "bridge_pbus": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.19117647058823528,
+      "points": [],
+      "arrow": "none"
+    },
+    "uart_bus": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.14705882352941177,
+      "target_pos": 0.5,
+      "points": [],
+      "arrow": "none"
+    },
+    "gpio_bus": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.8235294117647058,
+      "target_pos": 0.5,
+      "points": [],
+      "arrow": "none"
+    },
+    "uart_io": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.5,
+      "points": [],
+      "arrow": "none"
+    },
+    "gpio_io": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.5,
+      "points": [],
+      "arrow": "none"
+    },
+    "debug": {
+      "source_side": "right",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.25,
+      "points": [
+        [
+          110,
+          157
+        ],
+        [
+          110,
+          312.5
+        ]
+      ],
+      "arrow": "none"
+    },
+    "timer_irq": {
+      "source_side": "left",
+      "target_side": "left",
+      "source_pos": 0.5,
+      "target_pos": 0.8,
+      "points": [
+        [
+          105,
+          665
+        ],
+        [
+          105,
+          351
+        ]
+      ],
+      "dashed": true,
+      "label_at": [
+        140,
+        590
+      ]
+    },
+    "reset_input": {
+      "source_side": "top",
+      "target_side": "bottom",
+      "source_pos": 0.5,
+      "target_pos": 0.5,
+      "points": []
+    },
+    "clock_input": {
+      "source_side": "top",
+      "target_side": "bottom",
+      "source_pos": 0.5,
+      "target_pos": 0.5,
+      "points": []
+    }
+  },
+  "legend": {
+    "x": 700,
+    "y": 770,
+    "w": 600,
+    "entries": [
+      {
+        "connection": "cpu_bus",
+        "label": "Bus interface  |  M: declared initiator"
+      },
+      {
+        "connection": "timer_irq",
+        "label": "Interrupt feedback"
+      },
+      {
+        "connection": "clock_input",
+        "label": "Clock input"
+      }
+    ]
+  }
+}

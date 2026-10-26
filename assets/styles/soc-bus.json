@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "name": "soc-bus",
+  "view": "composition",
+  "tokens": {
+    "background": "#FFFFFF",
+    "font_family": "Arial",
+    "font_size": 15,
+    "edge_font_size": 12,
+    "text_color": "#000000",
+    "border_color": "#000000",
+    "colors": {
+      "container": "#FAFAFA",
+      "block": "#FFFFFF",
+      "compute": "#FFFFFF",
+      "memory": "#FFFFFF",
+      "storage": "#FFFFFF",
+      "control": "#FFFFFF",
+      "interconnect": "#FFFFFF",
+      "peripheral": "#FFFFFF",
+      "domain": "#FFFFFF",
+      "vector": "#FFFFFF"
+    },
+    "edge_colors": {
+      "data": "#000000",
+      "control": "#000000",
+      "bus": "#000000",
+      "clock": "#7F7F7F",
+      "feedback": "#404040"
+    },
+    "edge_width": 1.4,
+    "wide_width": 4,
+    "corner_radius": 0
+  },
+  "sample_ids": [],
+  "rules": [
+    "适用于总线型 SoC 组成图：先区分芯片边界、已知功能分区和总线服务范围；分区不自动代表时钟或电源域。",
+    "同一总线的发起端与目标端沿总线两侧按连接顺序排列，短直线优先；跨域桥靠两侧总线，不把总线体系强制排成流水链。",
+    "总线条可竖直或水平，朝向由连接拓扑决定；只有硬件端口明确为 initiator 才标 M，不能从位置、方向或粗线猜测主从。",
+    "虚线分区与芯片实线边界分开设置；只有确实存在的边界接口才画 pin。标签与模块保持绑定，端口角色与标注可以追溯。",
+    "时钟、复位、中断与数据互连分别保留端点；短反馈邻近直连，跨主通路反馈才走边缘走廊。",
+    "黑白图以线型、明确文字和少量图例区分路径；图例从实际连接样式派生，不给缺少证据的线宽、颜色或纹理赋予硬件含义。",
+    "同构模块保持尺寸和内部布局一致；容量、位宽和协议由当前设计给出，不从参考样本迁移。"
+  ]
+}
